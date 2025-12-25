@@ -1,0 +1,98 @@
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# CodeIgniter specific
+application/logs/
+application/cache/
+application/temp/
+application/uploads/
+
+# Uploaded content (from the ci/uploads directory)
+ci/uploads/accountant_images/
+ci/uploads/admission_form/
+ci/uploads/admit_card/
+ci/uploads/alumni_event_images/
+ci/uploads/alumni_student_images/
+ci/uploads/book/
+ci/uploads/certificate/
+ci/uploads/communicate/
+ci/uploads/front_office/
+ci/uploads/gallery/
+ci/uploads/homework/
+ci/uploads/inventory_items/
+ci/uploads/librarian_images/
+ci/uploads/marksheet/
+ci/uploads/notice_board_images/
+ci/uploads/offline_payments/
+ci/uploads/onlinexam_images/
+ci/uploads/print_headerfooter/
+ci/uploads/school_content/
+ci/uploads/school_expense/
+ci/uploads/school_income/
+ci/uploads/staff_documents/
+ci/uploads/staff_id_card/
+ci/uploads/staff_images/
+ci/uploads/staff_timeline/
+ci/uploads/student_documents/
+ci/uploads/student_id_card/
+ci/uploads/student_images/
+ci/uploads/student_leavedocuments/
+ci/uploads/student_timeline/
+ci/uploads/syllabus_attachment/
+ci/uploads/teacher_images/
+ci/uploads/transport_vehicle/
+ci/uploads/vehicle_photo/
+ci/uploads/video_tutorial/
+
+# XAMPP/Local development
+temp/
+*.tmp
+*.temp
+
+# Next.js specific
+.next/
+node_modules/
+out/
+
+# Environment variables
+.env.local
+.env
+.env*
+!.env.example
+
+# Database
+*.sqlite
+*.sqlite-journal
+
+# Dependencies
+node_modules/
+
+# Lock files
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Build outputs
+build/
+coverage/
+*.log
+
+test/e2e/screenshots/
+
+test/e2e/videos/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local configuration
+config.local.js

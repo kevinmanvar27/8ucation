@@ -1,0 +1,1712 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== MULTI-SCHOOL SUPPORT ====================
+model School {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(255)
+  code            String    @unique @db.VarChar(50)
+  email           String    @db.VarChar(255)
+  phone           String?   @db.VarChar(20)
+  address         String?   @db.Text
+  city            String?   @db.VarChar(100)
+  state           String?   @db.VarChar(100)
+  country         String?   @db.VarChar(100)
+  pincode         String?   @db.VarChar(20)
+  logo            String?   @db.VarChar(255)
+  favicon         String?   @db.VarChar(255)
+  website         String?   @db.VarChar(255)
+  currencySymbol  String    @default("$") @db.VarChar(10)
+  currencyCode    String    @default("USD") @db.VarChar(10)
+  dateFormat      String    @default("Y-m-d") @db.VarChar(20)
+  timezone        String    @default("UTC") @db.VarChar(50)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // Relations
+  sessions        Session[]
+  classes         Class[]
+  sections        Section[]
+  subjects        Subject[]
+  students        Student[]
+  staff           Staff[]
+  parents         Parent[]
+  feeTypes        FeeType[]
+  feeGroups       FeeGroup[]
+  exams           Exam[]
+  vehicles        Vehicle[]
+  routes          TransportRoute[]
+  hostels         Hostel[]
+  books           Book[]
+  events          Event[]
+  notices         Notice[]
+  enquiries       Enquiry[]
+  visitors        Visitor[]
+  complaints      Complaint[]
+  incomeHeads     IncomeHead[]
+  expenseHeads    ExpenseHead[]
+  departments     Department[]
+  designations    Designation[]
+  leaveTypes      LeaveType[]
+  homeworks       Homework[]
+  onlineExams     OnlineExam[]
+  contentTypes    ContentType[]
+  itemCategories  ItemCategory[]
+  itemStores      ItemStore[]
+  suppliers       Supplier[]
+  users           User[]
+  roles           Role[]
+  cmsPages        CmsPage[]
+  cmsMenus        CmsMenu[]
+  galleries       Gallery[]
+  banners         Banner[]
+  grades          Grade[]
+
+  @@map("schools")
+}
+
+// ==================== ACADEMIC YEAR/SESSION ====================
+model Session {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  session     String    @db.VarChar(50)
+  isActive    Boolean   @default(false)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  studentSessions StudentSession[]
+  feesMasters     FeesMaster[]
+  examSchedules   ExamSchedule[]
+
+  @@unique([schoolId, session])
+  @@map("sessions")
+}
+
+// ==================== CLASSES & SECTIONS ====================
+model Class {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  className   String    @db.VarChar(100)
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classSections   ClassSection[]
+  subjectGroups   SubjectGroup[]
+  feesMasters     FeesMaster[]
+  homeworks       Homework[]
+  onlineExams     OnlineExam[]
+  timetables      Timetable[]
+
+  @@unique([schoolId, className])
+  @@map("classes")
+}
+
+model Section {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  sectionName String    @db.VarChar(100)
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  classSections   ClassSection[]
+
+  @@unique([schoolId, sectionName])
+  @@map("sections")
+}
+
+model ClassSection {
+  id          Int       @id @default(autoincrement())
+  classId     Int
+  sectionId   Int
+  capacity    Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  class           Class             @relation(fields: [classId], references: [id], onDelete: Cascade)
+  section         Section           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  studentSessions StudentSession[]
+  classTeachers   ClassTeacher[]
+  timetables      Timetable[]
+  homeworks       Homework[]
+
+  @@unique([classId, sectionId])
+  @@map("class_sections")
+}
+
+// ==================== SUBJECTS ====================
+model Subject {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  code        String?   @db.VarChar(20)
+  type        String    @default("theory") @db.VarChar(20) // theory, practical
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school              School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  subjectGroupSubjects SubjectGroupSubject[]
+  teacherSubjects     TeacherSubject[]
+  timetables          Timetable[]
+  homeworks           Homework[]
+  examSubjects        ExamSubject[]
+  onlineExams         OnlineExam[]
+  lessonPlans         LessonPlan[]
+  syllabi             Syllabus[]
+
+  @@unique([schoolId, name])
+  @@map("subjects")
+}
+
+model SubjectGroup {
+  id          Int       @id @default(autoincrement())
+  classId     Int
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  class               Class                 @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subjectGroupSubjects SubjectGroupSubject[]
+  studentSubjectGroups StudentSubjectGroup[]
+
+  @@map("subject_groups")
+}
+
+model SubjectGroupSubject {
+  id              Int   @id @default(autoincrement())
+  subjectGroupId  Int
+  subjectId       Int
+
+  subjectGroup    SubjectGroup  @relation(fields: [subjectGroupId], references: [id], onDelete: Cascade)
+  subject         Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([subjectGroupId, subjectId])
+  @@map("subject_group_subjects")
+}
+
+// ==================== STUDENTS ====================
+model Student {
+  id                Int       @id @default(autoincrement())
+  schoolId          Int
+  admissionNo       String    @db.VarChar(50)
+  rollNo            String?   @db.VarChar(50)
+  firstName         String    @db.VarChar(100)
+  middleName        String?   @db.VarChar(100)
+  lastName          String?   @db.VarChar(100)
+  gender            String    @db.VarChar(10)
+  dob               DateTime?
+  email             String?   @db.VarChar(255)
+  phone             String?   @db.VarChar(20)
+  image             String?   @db.VarChar(255)
+  bloodGroup        String?   @db.VarChar(10)
+  religion          String?   @db.VarChar(50)
+  caste             String?   @db.VarChar(50)
+  category          String?   @db.VarChar(50)
+  motherTongue      String?   @db.VarChar(50)
+  currentAddress    String?   @db.Text
+  permanentAddress  String?   @db.Text
+  city              String?   @db.VarChar(100)
+  state             String?   @db.VarChar(100)
+  pincode           String?   @db.VarChar(20)
+  country           String?   @db.VarChar(100)
+  // Parent Info
+  parentId          Int?
+  fatherName        String?   @db.VarChar(100)
+  fatherPhone       String?   @db.VarChar(20)
+  fatherOccupation  String?   @db.VarChar(100)
+  motherName        String?   @db.VarChar(100)
+  motherPhone       String?   @db.VarChar(20)
+  motherOccupation  String?   @db.VarChar(100)
+  guardianName      String?   @db.VarChar(100)
+  guardianRelation  String?   @db.VarChar(50)
+  guardianPhone     String?   @db.VarChar(20)
+  guardianEmail     String?   @db.VarChar(255)
+  guardianAddress   String?   @db.Text
+  guardianOccupation String?  @db.VarChar(100)
+  // Additional Info
+  previousSchool    String?   @db.VarChar(255)
+  admissionDate     DateTime?
+  bankName          String?   @db.VarChar(100)
+  bankAccountNo     String?   @db.VarChar(50)
+  ifscCode          String?   @db.VarChar(20)
+  nationalId        String?   @db.VarChar(50)
+  localId           String?   @db.VarChar(50)
+  rte               Boolean   @default(false)
+  // Hostel & Transport
+  hostelRoomId      Int?
+  routePickupPointId Int?
+  // Status
+  isActive          Boolean   @default(true)
+  disableReason     String?   @db.Text
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  school              School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  parent              Parent?             @relation(fields: [parentId], references: [id])
+  hostelRoom          HostelRoom?         @relation(fields: [hostelRoomId], references: [id])
+  routePickupPoint    RoutePickupPoint?   @relation(fields: [routePickupPointId], references: [id])
+  studentSessions     StudentSession[]
+  user                User?
+  documents           StudentDocument[]
+  timeline            StudentTimeline[]
+  feePayments         FeePayment[]
+  attendances         StudentAttendance[]
+  examResults         ExamResult[]
+  onlineExamResults   OnlineExamResult[]
+  homeworkSubmissions HomeworkSubmission[]
+  bookIssues          BookIssue[]
+  libraryMember       LibraryMember?
+
+  @@unique([schoolId, admissionNo])
+  @@map("students")
+}
+
+model StudentSession {
+  id              Int       @id @default(autoincrement())
+  studentId       Int
+  sessionId       Int
+  classSectionId  Int
+  rollNo          String?   @db.VarChar(50)
+  isPromoted      Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  student             Student               @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  session             Session               @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  classSection        ClassSection          @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  studentSubjectGroups StudentSubjectGroup[]
+  feesMasters         StudentFeesMaster[]
+  attendances         StudentAttendance[]
+  examResults         ExamResult[]
+
+  @@unique([studentId, sessionId])
+  @@map("student_sessions")
+}
+
+model StudentSubjectGroup {
+  id                  Int   @id @default(autoincrement())
+  studentSessionId    Int
+  subjectGroupId      Int
+
+  studentSession  StudentSession  @relation(fields: [studentSessionId], references: [id], onDelete: Cascade)
+  subjectGroup    SubjectGroup    @relation(fields: [subjectGroupId], references: [id], onDelete: Cascade)
+
+  @@unique([studentSessionId, subjectGroupId])
+  @@map("student_subject_groups")
+}
+
+model StudentDocument {
+  id          Int       @id @default(autoincrement())
+  studentId   Int
+  title       String    @db.VarChar(255)
+  document    String    @db.VarChar(255)
+  createdAt   DateTime  @default(now())
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_documents")
+}
+
+model StudentTimeline {
+  id          Int       @id @default(autoincrement())
+  studentId   Int
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  date        DateTime
+  document    String?   @db.VarChar(255)
+  isVisible   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+
+  student     Student   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("student_timeline")
+}
+
+// ==================== PARENTS ====================
+model Parent {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  fatherName      String?   @db.VarChar(100)
+  fatherPhone     String?   @db.VarChar(20)
+  fatherOccupation String?  @db.VarChar(100)
+  fatherImage     String?   @db.VarChar(255)
+  motherName      String?   @db.VarChar(100)
+  motherPhone     String?   @db.VarChar(20)
+  motherOccupation String?  @db.VarChar(100)
+  motherImage     String?   @db.VarChar(255)
+  guardianName    String    @db.VarChar(100)
+  guardianRelation String?  @db.VarChar(50)
+  guardianPhone   String    @db.VarChar(20)
+  guardianEmail   String?   @db.VarChar(255)
+  guardianOccupation String? @db.VarChar(100)
+  guardianAddress String?   @db.Text
+  guardianImage   String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  students    Student[]
+  user        User?
+
+  @@map("parents")
+}
+
+// ==================== STAFF ====================
+model Staff {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  employeeId      String    @db.VarChar(50)
+  roleId          Int
+  departmentId    Int?
+  designationId   Int?
+  firstName       String    @db.VarChar(100)
+  lastName        String?   @db.VarChar(100)
+  gender          String    @db.VarChar(10)
+  dob             DateTime?
+  email           String    @db.VarChar(255)
+  phone           String?   @db.VarChar(20)
+  emergencyPhone  String?   @db.VarChar(20)
+  maritalStatus   String?   @db.VarChar(20)
+  image           String?   @db.VarChar(255)
+  currentAddress  String?   @db.Text
+  permanentAddress String?  @db.Text
+  qualification   String?   @db.VarChar(255)
+  experience      String?   @db.VarChar(100)
+  joiningDate     DateTime?
+  leavingDate     DateTime?
+  bankName        String?   @db.VarChar(100)
+  bankAccountNo   String?   @db.VarChar(50)
+  ifscCode        String?   @db.VarChar(20)
+  panNumber       String?   @db.VarChar(20)
+  basicSalary     Decimal   @default(0) @db.Decimal(15, 2)
+  contractType    String?   @db.VarChar(50)
+  facebook        String?   @db.VarChar(255)
+  twitter         String?   @db.VarChar(255)
+  linkedin        String?   @db.VarChar(255)
+  instagram       String?   @db.VarChar(255)
+  resume          String?   @db.VarChar(255)
+  joiningLetter   String?   @db.VarChar(255)
+  otherDocuments  String?   @db.Text
+  note            String?   @db.Text
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school          School            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  role            Role              @relation(fields: [roleId], references: [id])
+  department      Department?       @relation(fields: [departmentId], references: [id])
+  designation     Designation?      @relation(fields: [designationId], references: [id])
+  user            User?
+  classTeachers   ClassTeacher[]
+  teacherSubjects TeacherSubject[]
+  timetables      Timetable[]
+  staffAttendances StaffAttendance[]
+  leaveRequests   LeaveRequest[]
+  payrolls        Payroll[]
+  homeworks       Homework[]
+  lessonPlans     LessonPlan[]
+
+  @@unique([schoolId, employeeId])
+  @@map("staff")
+}
+
+model Department {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  staff       Staff[]
+
+  @@unique([schoolId, name])
+  @@map("departments")
+}
+
+model Designation {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  staff       Staff[]
+
+  @@unique([schoolId, name])
+  @@map("designations")
+}
+
+model ClassTeacher {
+  id              Int   @id @default(autoincrement())
+  classSectionId  Int
+  staffId         Int
+
+  classSection    ClassSection  @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  staff           Staff         @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([classSectionId, staffId])
+  @@map("class_teachers")
+}
+
+model TeacherSubject {
+  id          Int   @id @default(autoincrement())
+  staffId     Int
+  subjectId   Int
+
+  staff       Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, subjectId])
+  @@map("teacher_subjects")
+}
+
+// ==================== ATTENDANCE ====================
+model StudentAttendance {
+  id                  Int       @id @default(autoincrement())
+  studentSessionId    Int
+  studentId           Int
+  date                DateTime  @db.Date
+  status              String    @db.VarChar(20) // present, absent, late, half_day, holiday
+  remark              String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  studentSession  StudentSession  @relation(fields: [studentSessionId], references: [id], onDelete: Cascade)
+  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([studentSessionId, date])
+  @@map("student_attendances")
+}
+
+model StaffAttendance {
+  id          Int       @id @default(autoincrement())
+  staffId     Int
+  date        DateTime  @db.Date
+  status      String    @db.VarChar(20) // present, absent, late, half_day, holiday
+  checkIn     DateTime?
+  checkOut    DateTime?
+  remark      String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  staff       Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, date])
+  @@map("staff_attendances")
+}
+
+// ==================== FEE MANAGEMENT ====================
+model FeeType {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  code        String?   @db.VarChar(20)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  feeGroupTypes   FeeGroupType[]
+
+  @@unique([schoolId, name])
+  @@map("fee_types")
+}
+
+model FeeGroup {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  feeGroupTypes   FeeGroupType[]
+  feesMasters     FeesMaster[]
+
+  @@map("fee_groups")
+}
+
+model FeeGroupType {
+  id          Int       @id @default(autoincrement())
+  feeGroupId  Int
+  feeTypeId   Int
+  amount      Decimal   @db.Decimal(15, 2)
+  dueDate     DateTime?
+  fineType    String?   @db.VarChar(20) // none, fixed, percentage
+  fineAmount  Decimal   @default(0) @db.Decimal(15, 2)
+  finePercent Decimal   @default(0) @db.Decimal(5, 2)
+
+  feeGroup    FeeGroup  @relation(fields: [feeGroupId], references: [id], onDelete: Cascade)
+  feeType     FeeType   @relation(fields: [feeTypeId], references: [id], onDelete: Cascade)
+
+  @@unique([feeGroupId, feeTypeId])
+  @@map("fee_group_types")
+}
+
+model FeesMaster {
+  id              Int       @id @default(autoincrement())
+  sessionId       Int
+  feeGroupId      Int
+  classId         Int
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  session             Session             @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  feeGroup            FeeGroup            @relation(fields: [feeGroupId], references: [id], onDelete: Cascade)
+  class               Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  studentFeesMasters  StudentFeesMaster[]
+
+  @@unique([sessionId, feeGroupId, classId])
+  @@map("fees_masters")
+}
+
+model StudentFeesMaster {
+  id                  Int       @id @default(autoincrement())
+  studentSessionId    Int
+  feesMasterId        Int
+  isActive            Boolean   @default(true)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  studentSession  StudentSession  @relation(fields: [studentSessionId], references: [id], onDelete: Cascade)
+  feesMaster      FeesMaster      @relation(fields: [feesMasterId], references: [id], onDelete: Cascade)
+  feePayments     FeePayment[]
+
+  @@unique([studentSessionId, feesMasterId])
+  @@map("student_fees_masters")
+}
+
+model FeePayment {
+  id                      Int       @id @default(autoincrement())
+  studentFeesMasterId     Int
+  studentId               Int
+  amount                  Decimal   @db.Decimal(15, 2)
+  discount                Decimal   @default(0) @db.Decimal(15, 2)
+  fine                    Decimal   @default(0) @db.Decimal(15, 2)
+  paymentMode             String    @db.VarChar(50)
+  paymentDate             DateTime
+  transactionId           String?   @db.VarChar(100)
+  note                    String?   @db.Text
+  collectedBy             Int?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  studentFeesMaster   StudentFeesMaster   @relation(fields: [studentFeesMasterId], references: [id], onDelete: Cascade)
+  student             Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("fee_payments")
+}
+
+// ==================== EXAMINATIONS ====================
+model Exam {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  isPublished Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  examSchedules   ExamSchedule[]
+  examSubjects    ExamSubject[]
+
+  @@map("exams")
+}
+
+model ExamSchedule {
+  id          Int       @id @default(autoincrement())
+  examId      Int
+  sessionId   Int
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  exam        Exam      @relation(fields: [examId], references: [id], onDelete: Cascade)
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@map("exam_schedules")
+}
+
+model ExamSubject {
+  id              Int       @id @default(autoincrement())
+  examId          Int
+  subjectId       Int
+  examDate        DateTime?
+  startTime       String?   @db.VarChar(10)
+  endTime         String?   @db.VarChar(10)
+  roomNo          String?   @db.VarChar(50)
+  maxMarks        Decimal   @db.Decimal(5, 2)
+  minMarks        Decimal   @db.Decimal(5, 2)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  exam        Exam          @relation(fields: [examId], references: [id], onDelete: Cascade)
+  subject     Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  examResults ExamResult[]
+
+  @@unique([examId, subjectId])
+  @@map("exam_subjects")
+}
+
+model ExamResult {
+  id                  Int       @id @default(autoincrement())
+  examSubjectId       Int
+  studentSessionId    Int
+  studentId           Int
+  marksObtained       Decimal?  @db.Decimal(5, 2)
+  isAbsent            Boolean   @default(false)
+  note                String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  examSubject     ExamSubject     @relation(fields: [examSubjectId], references: [id], onDelete: Cascade)
+  studentSession  StudentSession  @relation(fields: [studentSessionId], references: [id], onDelete: Cascade)
+  student         Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([examSubjectId, studentSessionId])
+  @@map("exam_results")
+}
+
+model Grade {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  name            String    @db.VarChar(50)
+  minPercentage   Decimal   @db.Decimal(5, 2)
+  maxPercentage   Decimal   @db.Decimal(5, 2)
+  gradePoint      Decimal?  @db.Decimal(3, 2)
+  description     String?   @db.Text
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+  @@map("grades")
+}
+
+// ==================== ONLINE EXAMINATION ====================
+model OnlineExam {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  classId         Int
+  subjectId       Int
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  duration        Int       // in minutes
+  totalMarks      Decimal   @db.Decimal(5, 2)
+  passingMarks    Decimal   @db.Decimal(5, 2)
+  attemptLimit    Int       @default(1)
+  startDate       DateTime
+  endDate         DateTime
+  isNegativeMarking Boolean @default(false)
+  negativePercent Decimal   @default(0) @db.Decimal(5, 2)
+  isRandomQuestion Boolean  @default(false)
+  isPublished     Boolean   @default(false)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school              School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class               Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  subject             Subject             @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  questions           OnlineExamQuestion[]
+  results             OnlineExamResult[]
+
+  @@map("online_exams")
+}
+
+model Question {
+  id              Int       @id @default(autoincrement())
+  questionType    String    @db.VarChar(50) // mcq, true_false, descriptive, fill_blank
+  question        String    @db.Text
+  optionA         String?   @db.Text
+  optionB         String?   @db.Text
+  optionC         String?   @db.Text
+  optionD         String?   @db.Text
+  optionE         String?   @db.Text
+  correctAnswer   String?   @db.VarChar(10)
+  marks           Decimal   @db.Decimal(5, 2)
+  level           String    @default("medium") @db.VarChar(20) // easy, medium, hard
+  hint            String?   @db.Text
+  explanation     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  onlineExamQuestions OnlineExamQuestion[]
+
+  @@map("questions")
+}
+
+model OnlineExamQuestion {
+  id              Int   @id @default(autoincrement())
+  onlineExamId    Int
+  questionId      Int
+
+  onlineExam  OnlineExam  @relation(fields: [onlineExamId], references: [id], onDelete: Cascade)
+  question    Question    @relation(fields: [questionId], references: [id], onDelete: Cascade)
+
+  @@unique([onlineExamId, questionId])
+  @@map("online_exam_questions")
+}
+
+model OnlineExamResult {
+  id              Int       @id @default(autoincrement())
+  onlineExamId    Int
+  studentId       Int
+  totalMarks      Decimal   @db.Decimal(5, 2)
+  obtainedMarks   Decimal   @db.Decimal(5, 2)
+  percentage      Decimal   @db.Decimal(5, 2)
+  isPassed        Boolean   @default(false)
+  startTime       DateTime
+  endTime         DateTime?
+  answers         Json?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  onlineExam  OnlineExam  @relation(fields: [onlineExamId], references: [id], onDelete: Cascade)
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@map("online_exam_results")
+}
+
+// ==================== HOMEWORK ====================
+model Homework {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  classId         Int
+  classSectionId  Int
+  subjectId       Int
+  staffId         Int
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  homeworkDate    DateTime
+  submissionDate  DateTime
+  document        String?   @db.VarChar(255)
+  evaluationDate  DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school          School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class           Class               @relation(fields: [classId], references: [id], onDelete: Cascade)
+  classSection    ClassSection        @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  subject         Subject             @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  staff           Staff               @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  submissions     HomeworkSubmission[]
+
+  @@map("homeworks")
+}
+
+model HomeworkSubmission {
+  id              Int       @id @default(autoincrement())
+  homeworkId      Int
+  studentId       Int
+  message         String?   @db.Text
+  document        String?   @db.VarChar(255)
+  status          String    @default("pending") @db.VarChar(20) // pending, submitted, evaluated
+  marks           Decimal?  @db.Decimal(5, 2)
+  remark          String?   @db.Text
+  submittedAt     DateTime?
+  evaluatedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  homework    Homework    @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  student     Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([homeworkId, studentId])
+  @@map("homework_submissions")
+}
+
+// ==================== TIMETABLE ====================
+model Timetable {
+  id              Int       @id @default(autoincrement())
+  classSectionId  Int
+  subjectId       Int
+  staffId         Int
+  classId         Int
+  day             String    @db.VarChar(20)
+  startTime       String    @db.VarChar(10)
+  endTime         String    @db.VarChar(10)
+  roomNo          String?   @db.VarChar(50)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  classSection    ClassSection  @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
+  subject         Subject       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  staff           Staff         @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  class           Class         @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@map("timetables")
+}
+
+// ==================== LESSON PLAN & SYLLABUS ====================
+model LessonPlan {
+  id              Int       @id @default(autoincrement())
+  subjectId       Int
+  staffId         Int
+  title           String    @db.VarChar(255)
+  date            DateTime
+  timeFrom        String    @db.VarChar(10)
+  timeTo          String    @db.VarChar(10)
+  lectureNote     String?   @db.Text
+  objectives      String?   @db.Text
+  teachingMethod  String?   @db.Text
+  homework        String?   @db.Text
+  document        String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  staff       Staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@map("lesson_plans")
+}
+
+model Syllabus {
+  id              Int       @id @default(autoincrement())
+  subjectId       Int
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  document        String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  subject     Subject   @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+
+  @@map("syllabi")
+}
+
+// ==================== TRANSPORT ====================
+model Vehicle {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  vehicleNo       String    @db.VarChar(50)
+  vehicleModel    String?   @db.VarChar(100)
+  manufacturer    String?   @db.VarChar(100)
+  driverName      String?   @db.VarChar(100)
+  driverPhone     String?   @db.VarChar(20)
+  driverLicense   String?   @db.VarChar(50)
+  capacity        Int       @default(0)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school          School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  vehicleRoutes   VehicleRoute[]
+
+  @@map("vehicles")
+}
+
+model TransportRoute {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  title       String    @db.VarChar(100)
+  fare        Decimal   @default(0) @db.Decimal(15, 2)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school              School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  vehicleRoutes       VehicleRoute[]
+  routePickupPoints   RoutePickupPoint[]
+
+  @@map("transport_routes")
+}
+
+model VehicleRoute {
+  id          Int   @id @default(autoincrement())
+  vehicleId   Int
+  routeId     Int
+
+  vehicle     Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  route       TransportRoute  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+
+  @@unique([vehicleId, routeId])
+  @@map("vehicle_routes")
+}
+
+model PickupPoint {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  address     String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  routePickupPoints   RoutePickupPoint[]
+
+  @@map("pickup_points")
+}
+
+model RoutePickupPoint {
+  id              Int       @id @default(autoincrement())
+  routeId         Int
+  pickupPointId   Int
+  pickupTime      String?   @db.VarChar(10)
+
+  route       TransportRoute  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  pickupPoint PickupPoint     @relation(fields: [pickupPointId], references: [id], onDelete: Cascade)
+  students    Student[]
+
+  @@unique([routeId, pickupPointId])
+  @@map("route_pickup_points")
+}
+
+// ==================== HOSTEL ====================
+model Hostel {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  type        String    @db.VarChar(20) // boys, girls, mixed
+  address     String?   @db.Text
+  intake      Int       @default(0)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  rooms       HostelRoom[]
+
+  @@map("hostels")
+}
+
+model RoomType {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  rooms       HostelRoom[]
+
+  @@map("room_types")
+}
+
+model HostelRoom {
+  id              Int       @id @default(autoincrement())
+  hostelId        Int
+  roomTypeId      Int
+  roomNo          String    @db.VarChar(50)
+  noOfBeds        Int       @default(1)
+  costPerBed      Decimal   @default(0) @db.Decimal(15, 2)
+  description     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  hostel      Hostel      @relation(fields: [hostelId], references: [id], onDelete: Cascade)
+  roomType    RoomType    @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
+  students    Student[]
+
+  @@map("hostel_rooms")
+}
+
+// ==================== LIBRARY ====================
+model Book {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  title           String    @db.VarChar(255)
+  bookNo          String    @db.VarChar(50)
+  isbn            String?   @db.VarChar(50)
+  author          String?   @db.VarChar(255)
+  publisher       String?   @db.VarChar(255)
+  subject         String?   @db.VarChar(100)
+  rackNo          String?   @db.VarChar(50)
+  quantity        Int       @default(1)
+  available       Int       @default(1)
+  price           Decimal   @default(0) @db.Decimal(15, 2)
+  postDate        DateTime?
+  description     String?   @db.Text
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  bookIssues  BookIssue[]
+
+  @@unique([schoolId, bookNo])
+  @@map("books")
+}
+
+model LibraryMember {
+  id              Int       @id @default(autoincrement())
+  memberType      String    @db.VarChar(20) // student, staff
+  studentId       Int?      @unique
+  staffId         Int?
+  libraryCardNo   String    @db.VarChar(50)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  student     Student?    @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  bookIssues  BookIssue[]
+
+  @@map("library_members")
+}
+
+model BookIssue {
+  id              Int       @id @default(autoincrement())
+  bookId          Int
+  memberId        Int
+  studentId       Int?
+  issueDate       DateTime
+  dueDate         DateTime
+  returnDate      DateTime?
+  status          String    @default("issued") @db.VarChar(20) // issued, returned
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  book        Book            @relation(fields: [bookId], references: [id], onDelete: Cascade)
+  member      LibraryMember   @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  student     Student?        @relation(fields: [studentId], references: [id])
+
+  @@map("book_issues")
+}
+
+// ==================== INVENTORY ====================
+model ItemCategory {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  items       Item[]
+
+  @@map("item_categories")
+}
+
+model ItemStore {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  code        String?   @db.VarChar(20)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  itemStocks  ItemStock[]
+
+  @@map("item_stores")
+}
+
+model Supplier {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  name            String    @db.VarChar(100)
+  phone           String?   @db.VarChar(20)
+  email           String?   @db.VarChar(255)
+  address         String?   @db.Text
+  contactPerson   String?   @db.VarChar(100)
+  description     String?   @db.Text
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  itemStocks  ItemStock[]
+
+  @@map("suppliers")
+}
+
+model Item {
+  id              Int       @id @default(autoincrement())
+  categoryId      Int
+  name            String    @db.VarChar(100)
+  unit            String?   @db.VarChar(50)
+  description     String?   @db.Text
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  category    ItemCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  itemStocks  ItemStock[]
+  itemIssues  ItemIssue[]
+
+  @@map("items")
+}
+
+model ItemStock {
+  id              Int       @id @default(autoincrement())
+  itemId          Int
+  storeId         Int
+  supplierId      Int?
+  quantity        Int       @default(0)
+  purchasePrice   Decimal   @default(0) @db.Decimal(15, 2)
+  date            DateTime
+  description     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  item        Item        @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  store       ItemStore   @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  supplier    Supplier?   @relation(fields: [supplierId], references: [id])
+
+  @@map("item_stocks")
+}
+
+model ItemIssue {
+  id              Int       @id @default(autoincrement())
+  itemId          Int
+  issueType       String    @db.VarChar(50)
+  issueToId       Int
+  issueBy         Int
+  quantity        Int       @default(1)
+  issueDate       DateTime
+  returnDate      DateTime?
+  note            String?   @db.Text
+  status          String    @default("issued") @db.VarChar(20)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  item        Item    @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@map("item_issues")
+}
+
+// ==================== FRONT OFFICE ====================
+model Enquiry {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  name            String    @db.VarChar(100)
+  phone           String?   @db.VarChar(20)
+  email           String?   @db.VarChar(255)
+  address         String?   @db.Text
+  description     String?   @db.Text
+  source          String?   @db.VarChar(50)
+  classInterested String?   @db.VarChar(100)
+  followUpDate    DateTime?
+  status          String    @default("active") @db.VarChar(20)
+  note            String?   @db.Text
+  assignedTo      Int?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school          School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  followUps       EnquiryFollowUp[]
+
+  @@map("enquiries")
+}
+
+model EnquiryFollowUp {
+  id              Int       @id @default(autoincrement())
+  enquiryId       Int
+  followUpDate    DateTime
+  nextFollowUp    DateTime?
+  response        String?   @db.Text
+  note            String?   @db.Text
+  createdBy       Int
+  createdAt       DateTime  @default(now())
+
+  enquiry     Enquiry   @relation(fields: [enquiryId], references: [id], onDelete: Cascade)
+
+  @@map("enquiry_follow_ups")
+}
+
+model Visitor {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  purpose         String    @db.VarChar(100)
+  name            String    @db.VarChar(100)
+  phone           String?   @db.VarChar(20)
+  email           String?   @db.VarChar(255)
+  idCard          String?   @db.VarChar(100)
+  noOfPersons     Int       @default(1)
+  date            DateTime
+  inTime          String?   @db.VarChar(10)
+  outTime         String?   @db.VarChar(10)
+  toMeet          String?   @db.VarChar(100)
+  note            String?   @db.Text
+  image           String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@map("visitors")
+}
+
+model Complaint {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  complaintType   String    @db.VarChar(100)
+  source          String?   @db.VarChar(50)
+  name            String    @db.VarChar(100)
+  phone           String?   @db.VarChar(20)
+  email           String?   @db.VarChar(255)
+  date            DateTime
+  description     String?   @db.Text
+  actionTaken     String?   @db.Text
+  assignedTo      Int?
+  note            String?   @db.Text
+  status          String    @default("pending") @db.VarChar(20)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@map("complaints")
+}
+
+model PostalDispatch {
+  id              Int       @id @default(autoincrement())
+  type            String    @db.VarChar(20) // dispatch, receive
+  referenceNo     String?   @db.VarChar(100)
+  toTitle         String?   @db.VarChar(255)
+  fromTitle       String?   @db.VarChar(255)
+  address         String?   @db.Text
+  date            DateTime
+  note            String?   @db.Text
+  document        String?   @db.VarChar(255)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("postal_dispatches")
+}
+
+model PhoneCallLog {
+  id              Int       @id @default(autoincrement())
+  name            String    @db.VarChar(100)
+  phone           String?   @db.VarChar(20)
+  date            DateTime
+  description     String?   @db.Text
+  nextFollowUp    DateTime?
+  callType        String    @db.VarChar(20) // incoming, outgoing
+  callDuration    String?   @db.VarChar(20)
+  note            String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("phone_call_logs")
+}
+
+// ==================== INCOME & EXPENSE ====================
+model IncomeHead {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  incomes     Income[]
+
+  @@unique([schoolId, name])
+  @@map("income_heads")
+}
+
+model Income {
+  id              Int       @id @default(autoincrement())
+  incomeHeadId    Int
+  name            String    @db.VarChar(255)
+  invoiceNo       String?   @db.VarChar(100)
+  date            DateTime
+  amount          Decimal   @db.Decimal(15, 2)
+  document        String?   @db.VarChar(255)
+  description     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  incomeHead  IncomeHead  @relation(fields: [incomeHeadId], references: [id], onDelete: Cascade)
+
+  @@map("incomes")
+}
+
+model ExpenseHead {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  expenses    Expense[]
+
+  @@unique([schoolId, name])
+  @@map("expense_heads")
+}
+
+model Expense {
+  id              Int       @id @default(autoincrement())
+  expenseHeadId   Int
+  name            String    @db.VarChar(255)
+  invoiceNo       String?   @db.VarChar(100)
+  date            DateTime
+  amount          Decimal   @db.Decimal(15, 2)
+  document        String?   @db.VarChar(255)
+  description     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  expenseHead ExpenseHead @relation(fields: [expenseHeadId], references: [id], onDelete: Cascade)
+
+  @@map("expenses")
+}
+
+// ==================== LEAVE MANAGEMENT ====================
+model LeaveType {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  leaveRequests   LeaveRequest[]
+
+  @@unique([schoolId, name])
+  @@map("leave_types")
+}
+
+model LeaveRequest {
+  id              Int       @id @default(autoincrement())
+  staffId         Int
+  leaveTypeId     Int
+  fromDate        DateTime
+  toDate          DateTime
+  reason          String?   @db.Text
+  document        String?   @db.VarChar(255)
+  status          String    @default("pending") @db.VarChar(20) // pending, approved, rejected
+  approvedBy      Int?
+  adminRemark     String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  staff       Staff       @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  leaveType   LeaveType   @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
+
+  @@map("leave_requests")
+}
+
+// ==================== PAYROLL ====================
+model Payroll {
+  id              Int       @id @default(autoincrement())
+  staffId         Int
+  month           String    @db.VarChar(20)
+  year            Int
+  basicSalary     Decimal   @db.Decimal(15, 2)
+  earnings        Json?     // JSON for allowances
+  deductions      Json?     // JSON for deductions
+  grossSalary     Decimal   @db.Decimal(15, 2)
+  totalDeduction  Decimal   @db.Decimal(15, 2)
+  netSalary       Decimal   @db.Decimal(15, 2)
+  paymentMode     String?   @db.VarChar(50)
+  paymentDate     DateTime?
+  status          String    @default("pending") @db.VarChar(20) // pending, generated, paid
+  note            String?   @db.Text
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  staff       Staff   @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  @@unique([staffId, month, year])
+  @@map("payrolls")
+}
+
+// ==================== EVENTS & NOTICES ====================
+model Event {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  startDate       DateTime
+  endDate         DateTime?
+  isHoliday       Boolean   @default(false)
+  eventFor        String    @default("all") @db.VarChar(50) // all, students, staff
+  image           String?   @db.VarChar(255)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@map("events")
+}
+
+model Notice {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  date            DateTime
+  publishOn       DateTime?
+  noticeFor       String    @default("all") @db.VarChar(50) // all, students, staff
+  document        String?   @db.VarChar(255)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@map("notices")
+}
+
+// ==================== CONTENT SHARING ====================
+model ContentType {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  contents    Content[]
+
+  @@unique([schoolId, name])
+  @@map("content_types")
+}
+
+model Content {
+  id              Int       @id @default(autoincrement())
+  contentTypeId   Int
+  title           String    @db.VarChar(255)
+  description     String?   @db.Text
+  document        String?   @db.VarChar(255)
+  shareWith       String    @default("all") @db.VarChar(50)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  contentType ContentType @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
+
+  @@map("contents")
+}
+
+// ==================== USERS & AUTHENTICATION ====================
+model User {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  username        String    @db.VarChar(100)
+  email           String    @db.VarChar(255)
+  password        String    @db.VarChar(255)
+  userType        String    @db.VarChar(20) // superadmin, admin, staff, student, parent
+  studentId       Int?      @unique
+  staffId         Int?      @unique
+  parentId        Int?      @unique
+  roleId          Int?
+  isActive        Boolean   @default(true)
+  lastLogin       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School      @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  student     Student?    @relation(fields: [studentId], references: [id])
+  staff       Staff?      @relation(fields: [staffId], references: [id])
+  parent      Parent?     @relation(fields: [parentId], references: [id])
+  role        Role?       @relation(fields: [roleId], references: [id])
+
+  @@unique([schoolId, username])
+  @@unique([schoolId, email])
+  @@map("users")
+}
+
+model Role {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  slug        String    @db.VarChar(100)
+  isSystem    Boolean   @default(false)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school          School              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  staff           Staff[]
+  users           User[]
+  permissions     RolePermission[]
+
+  @@unique([schoolId, slug])
+  @@map("roles")
+}
+
+model Permission {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(100)
+  slug        String    @unique @db.VarChar(100)
+  module      String    @db.VarChar(100)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model RolePermission {
+  id              Int       @id @default(autoincrement())
+  roleId          Int
+  permissionId    Int
+  canView         Boolean   @default(false)
+  canAdd          Boolean   @default(false)
+  canEdit         Boolean   @default(false)
+  canDelete       Boolean   @default(false)
+
+  role        Role        @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission  Permission  @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@map("role_permissions")
+}
+
+// ==================== FRONT CMS ====================
+model CmsPage {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  title           String    @db.VarChar(255)
+  slug            String    @db.VarChar(255)
+  content         String?   @db.LongText
+  metaTitle       String?   @db.VarChar(255)
+  metaDescription String?   @db.Text
+  metaKeywords    String?   @db.Text
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, slug])
+  @@map("cms_pages")
+}
+
+model CmsMenu {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  name        String    @db.VarChar(100)
+  slug        String    @db.VarChar(100)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  items       CmsMenuItem[]
+
+  @@unique([schoolId, slug])
+  @@map("cms_menus")
+}
+
+model CmsMenuItem {
+  id          Int       @id @default(autoincrement())
+  menuId      Int
+  parentId    Int?
+  title       String    @db.VarChar(100)
+  url         String?   @db.VarChar(255)
+  pageSlug    String?   @db.VarChar(255)
+  target      String    @default("_self") @db.VarChar(20)
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  menu        CmsMenu       @relation(fields: [menuId], references: [id], onDelete: Cascade)
+  parent      CmsMenuItem?  @relation("MenuItemChildren", fields: [parentId], references: [id])
+  children    CmsMenuItem[] @relation("MenuItemChildren")
+
+  @@map("cms_menu_items")
+}
+
+model Gallery {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  images      GalleryImage[]
+
+  @@map("galleries")
+}
+
+model GalleryImage {
+  id          Int       @id @default(autoincrement())
+  galleryId   Int
+  image       String    @db.VarChar(255)
+  caption     String?   @db.VarChar(255)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+
+  gallery     Gallery   @relation(fields: [galleryId], references: [id], onDelete: Cascade)
+
+  @@map("gallery_images")
+}
+
+model Banner {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  title       String?   @db.VarChar(255)
+  description String?   @db.Text
+  image       String    @db.VarChar(255)
+  url         String?   @db.VarChar(255)
+  sortOrder   Int       @default(0)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  school      School    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@map("banners")
+}
+
+// ==================== NOTIFICATIONS ====================
+model Notification {
+  id              Int       @id @default(autoincrement())
+  title           String    @db.VarChar(255)
+  message         String?   @db.Text
+  type            String    @db.VarChar(50)
+  url             String?   @db.VarChar(255)
+  isRead          Boolean   @default(false)
+  userId          Int
+  createdAt       DateTime  @default(now())
+
+  @@map("notifications")
+}
+
+// ==================== SETTINGS ====================
+model Setting {
+  id          Int       @id @default(autoincrement())
+  key         String    @unique @db.VarChar(100)
+  value       String?   @db.Text
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("settings")
+}

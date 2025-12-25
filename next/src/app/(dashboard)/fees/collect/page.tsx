@@ -1,0 +1,280 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useSession } from 'next-auth/react';
+import Link from 'next/link';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Select } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Loading, TableLoading } from '@/components/ui/loading';
+import { 
+  Search, 
+  DollarSign,
+  User,
+  Calendar,
+  CreditCard
+} from 'lucide-react';
+import toast from 'react-hot-toast';
+
+interface Student {
+  id: string;
+  admissionNo: string;
+  firstName: string;
+  lastName: string;
+  class: {
+    name: string;
+  };
+  section: {
+    name: string;
+  };
+  fees: {
+    total: number;
+    paid: number;
+    due: number;
+  };
+}
+
+export default function CollectFeesPage() {
+  const { data: session } = useSession();
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedClass, setSelectedClass] = useState('');
+  const [selectedSection, setSelectedSection] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const pageSize = 10;
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: pageSize.toString(),
+        includeFees: 'true',
+      });
+      if (searchTerm) params.append('search', searchTerm);
+      if (selectedClass) params.append('classId', selectedClass);
+      if (selectedSection) params.append('sectionId', selectedSection);
+
+      const res = await fetch(`/api/students?${params}`);
+      const data = await res.json();
+      
+      if (data.success) {
+        setStudents(data.data);
+        setTotalPages(data.pagination.totalPages);
+        setTotalCount(data.pagination.total);
+      } else {
+        toast.error(data.error || 'Failed to fetch students');
+      }
+    } catch (error) {
+      toast.error('Failed to fetch students');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStudents();
+  }, [currentPage, searchTerm, selectedClass, selectedSection]);
+
+  const handleCollectFee = (studentId: string) => {
+    // Redirect to fee collection page for this student
+    window.location.href = `/fees/collect/${studentId}`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight">Collect Fees</h1>
+        <p className="text-muted-foreground">
+          Collect fees from students
+        </p>
+      </div>
+
+      {/* Filters */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="grid gap-4 md:grid-cols-4">
+            <div className="md:col-span-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search by name, admission no..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            <Select
+              value={selectedClass}
+              onChange={(e) => {
+                setSelectedClass(e.target.value);
+                setSelectedSection('');
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: '', label: 'All Classes' },
+                { value: '1', label: 'Class 1' },
+                { value: '2', label: 'Class 2' },
+                { value: '3', label: 'Class 3' },
+                // Add more classes as needed
+              ]}
+            />
+            <Select
+              value={selectedSection}
+              onChange={(e) => {
+                setSelectedSection(e.target.value);
+                setCurrentPage(1);
+              }}
+              options={[
+                { value: '', label: 'All Sections' },
+                { value: 'A', label: 'Section A' },
+                { value: 'B', label: 'Section B' },
+                { value: 'C', label: 'Section C' },
+                // Add more sections as needed
+              ]}
+              disabled={!selectedClass}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Students Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>Students</span>
+            <Badge variant="secondary">{totalCount} students</Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <TableLoading columns={6} rows={5} />
+          ) : students.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12">
+              <DollarSign className="h-12 w-12 text-muted-foreground" />
+              <h3 className="mt-4 text-lg font-semibold">No students found</h3>
+              <p className="text-muted-foreground">
+                {searchTerm || selectedClass 
+                  ? 'Try adjusting your filters'
+                  : 'No students available'}
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Student</TableHead>
+                      <TableHead>Admission No</TableHead>
+                      <TableHead>Class</TableHead>
+                      <TableHead>Total Fees</TableHead>
+                      <TableHead>Paid</TableHead>
+                      <TableHead>Due</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {students.map((student) => (
+                      <TableRow key={student.id}>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <span className="text-sm font-medium text-primary">
+                                {student.firstName[0]}{student.lastName[0]}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {student.firstName} {student.lastName}
+                              </p>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-mono">{student.admissionNo}</span>
+                        </TableCell>
+                        <TableCell>
+                          <p className="font-medium">
+                            {student.class.name} - {student.section.name}
+                          </p>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span>{student.fees.total.toFixed(2)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span className="text-green-600">{student.fees.paid.toFixed(2)}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-4 w-4 text-muted-foreground" />
+                            <span className={student.fees.due > 0 ? 'text-red-600' : 'text-green-600'}>
+                              {student.fees.due.toFixed(2)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button 
+                            onClick={() => handleCollectFee(student.id)}
+                            disabled={student.fees.due <= 0}
+                          >
+                            <CreditCard className="mr-2 h-4 w-4" />
+                            Collect Fee
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="mt-4 flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">
+                    Showing {(currentPage - 1) * pageSize + 1} to {Math.min(currentPage * pageSize, totalCount)} of {totalCount} students
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
