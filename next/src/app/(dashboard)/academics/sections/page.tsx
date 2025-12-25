@@ -37,10 +37,12 @@ export default function SectionsPage() {
       const res = await fetch('/api/academics/sections');
       const data = await res.json();
       if (data.success) {
-        setSections(data.data);
+        const sectionsArray = data.data || [];
+        setSections(Array.isArray(sectionsArray) ? sectionsArray : []);
       }
     } catch (error) {
       toast.error('Failed to fetch sections');
+      setSections([]);
     } finally {
       setLoading(false);
     }

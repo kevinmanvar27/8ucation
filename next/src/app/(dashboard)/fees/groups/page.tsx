@@ -44,12 +44,14 @@ export default function FeeGroupsPage() {
       const data = await res.json();
       
       if (data.success) {
-        setFeeGroups(data.data);
+        const feeGroupsArray = data.data || [];
+        setFeeGroups(Array.isArray(feeGroupsArray) ? feeGroupsArray : []);
       } else {
         toast.error(data.error || 'Failed to fetch fee groups');
       }
     } catch (error) {
       toast.error('Failed to fetch fee groups');
+      setFeeGroups([]);
     } finally {
       setLoading(false);
     }

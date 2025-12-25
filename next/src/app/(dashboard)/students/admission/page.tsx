@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save, User, Users, MapPin, GraduationCap, Bus, Home } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -339,7 +339,7 @@ export default function StudentAdmissionPage() {
                   {...register('lastName')}
                   error={errors.lastName?.message}
                 />
-                <Select
+                <SimpleSelect
                   label="Gender *"
                   {...register('gender')}
                   error={errors.gender?.message}
@@ -371,7 +371,7 @@ export default function StudentAdmissionPage() {
                   label="Phone"
                   {...register('phone')}
                 />
-                <Select
+                <SimpleSelect
                   label="Blood Group"
                   {...register('bloodGroup')}
                   options={[
@@ -402,7 +402,7 @@ export default function StudentAdmissionPage() {
                   label="Mother Tongue"
                   {...register('motherTongue')}
                 />
-                <Select
+                <SimpleSelect
                   label="Category"
                   {...register('categoryId')}
                   options={[
@@ -410,7 +410,7 @@ export default function StudentAdmissionPage() {
                     ...categories.map(c => ({ value: c.id, label: c.name })),
                   ]}
                 />
-                <Select
+                <SimpleSelect
                   label="School House"
                   {...register('schoolHouseId')}
                   options={[
@@ -498,7 +498,7 @@ export default function StudentAdmissionPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-4">
-                <Select
+                <SimpleSelect
                   label="Session *"
                   {...register('sessionId')}
                   error={errors.sessionId?.message}
@@ -507,7 +507,7 @@ export default function StudentAdmissionPage() {
                     ...sessions.map(s => ({ value: s.id, label: s.name })),
                   ]}
                 />
-                <Select
+                <SimpleSelect
                   label="Class *"
                   {...register('classId')}
                   error={errors.classId?.message}
@@ -520,7 +520,7 @@ export default function StudentAdmissionPage() {
                     ...classes.map(c => ({ value: c.id, label: c.name })),
                   ]}
                 />
-                <Select
+                <SimpleSelect
                   label="Section *"
                   {...register('sectionId')}
                   error={errors.sectionId?.message}
@@ -547,7 +547,7 @@ export default function StudentAdmissionPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
-                <Select
+                <SimpleSelect
                   label="Route"
                   {...register('routeId')}
                   onChange={(e) => {
@@ -559,7 +559,7 @@ export default function StudentAdmissionPage() {
                     ...routes.map(r => ({ value: r.id, label: r.name })),
                   ]}
                 />
-                <Select
+                <SimpleSelect
                   label="Pickup Point"
                   {...register('pickupPointId')}
                   disabled={!selectedRouteId}
@@ -581,7 +581,7 @@ export default function StudentAdmissionPage() {
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 md:grid-cols-2">
-                <Select
+                <SimpleSelect
                   label="Hostel Room"
                   {...register('hostelRoomId')}
                   options={[

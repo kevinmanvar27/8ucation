@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { TableLoading } from '@/components/ui/loading';
@@ -95,10 +95,18 @@ export default function StaffAttendancePage() {
           deptRes.json(),
         ]);
 
-        if (rolesData.success) setRoles(rolesData.data);
-        if (deptData.success) setDepartments(deptData.data);
+        if (rolesData.success) {
+          const rolesArray = rolesData.data || [];
+          setRoles(Array.isArray(rolesArray) ? rolesArray : []);
+        }
+        if (deptData.success) {
+          const deptArray = deptData.data || [];
+          setDepartments(Array.isArray(deptArray) ? deptArray : []);
+        }
       } catch (error) {
         toast.error('Failed to fetch filters');
+        setRoles([]);
+        setDepartments([]);
       } finally {
         setLoadingFilters(false);
       }
@@ -120,11 +128,12 @@ export default function StaffAttendancePage() {
       const data = await res.json();
 
       if (data.success) {
-        setStaffList(data.data.staff);
+        const staffArray = data.data?.staff || [];
+        setStaffList(Array.isArray(staffArray) ? staffArray : []);
         
         // Initialize attendance records from existing data
         const records = new Map<number, AttendanceRecord>();
-        data.data.staff.forEach((staff: StaffAttendance) => {
+        (Array.isArray(staffArray) ? staffArray : []).forEach((staff: StaffAttendance) => {
           const att = staff.attendance;
           records.set(staff.id, {
             staffId: staff.id,
@@ -268,7 +277,7 @@ export default function StaffAttendancePage() {
               />
             </div>
             <div>
-              <Select
+              <SimpleSelect
                 label="Role"
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
@@ -280,7 +289,7 @@ export default function StaffAttendancePage() {
               />
             </div>
             <div>
-              <Select
+              <SimpleSelect
                 label="Department"
                 value={filterDepartment}
                 onChange={(e) => setFilterDepartment(e.target.value)}

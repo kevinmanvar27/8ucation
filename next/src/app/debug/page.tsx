@@ -10,14 +10,14 @@ export default function DebugPage() {
     fetch('/api/schools/public')
       .then(res => res.json())
       .then(data => {
-        setDebugInfo(prev => ({
+        setDebugInfo((prev: any) => ({
           ...prev,
           schoolsApi: data,
           timestamp: new Date().toISOString()
         }));
       })
       .catch(err => {
-        setDebugInfo(prev => ({
+        setDebugInfo((prev: any) => ({
           ...prev,
           schoolsApiError: err.message,
           timestamp: new Date().toISOString()

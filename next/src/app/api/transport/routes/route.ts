@@ -3,64 +3,126 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
 
-// GET /api/transport/routes
+// GET - List all transport routes for the school
 export async function GET(request: NextRequest) {
   try {
-    // For development/testing purposes, use default school ID
-    const schoolId = 1; // Default to Demo School
-    
-    // Uncomment the following lines for production
-    /*
     const session = await getServerSession(authOptions);
     if (!session?.user?.schoolId) {
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
-    const schoolId = Number(session.user.schoolId);
-    */
+
+    const schoolId = parseInt(session.user.schoolId);
     const { searchParams } = new URL(request.url);
-    const withPickupPoints = searchParams.get('withPickupPoints') === 'true';
+    const search = searchParams.get('search') || '';
 
-    if (withPickupPoints) {
-      const routes = await prisma.transportRoute.findMany({
-        where: { schoolId, isActive: true },
-        include: {
-          routePickupPoints: {
-            include: {
-              pickupPoint: true,
-            },
-          },
-        },
-      });
-
-      const data = routes.map(route => ({
-        id: route.id,
-        name: route.title,
-        fare: route.fare,
-        pickupPoints: route.routePickupPoints.map(rpp => ({
-          id: rpp.pickupPoint.id,
-          name: rpp.pickupPoint.name,
-        })),
-      }));
-
-      return NextResponse.json({ success: true, data });
+    const where: any = { schoolId };
+    if (search) {
+      where.title = { contains: search };
     }
 
     const routes = await prisma.transportRoute.findMany({
-      where: { schoolId, isActive: true },
+      where,
+      include: {
+        vehicleRoutes: {
+          include: {
+            vehicle: { select: { id: true, vehicleNo: true, driverName: true } }
+          }
+        },
+        routePickupPoints: {
+          include: { pickupPoint: true },
+          orderBy: { pickupTime: 'asc' }
+        },
+      },
+      orderBy: { title: 'asc' },
     });
 
-    const data = routes.map(route => ({
-      id: route.id,
-      name: route.title,
-      fare: route.fare,
-    }));
-
-    return NextResponse.json({ success: true, data });
+    return NextResponse.json({ success: true, data: routes });
   } catch (error) {
-    console.error('Error fetching transport routes:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch transport routes' },
-      { status: 500 }
-    );
+    console.error('Error fetching routes:', error);
+    return NextResponse.json({ success: false, error: 'Failed to fetch routes' }, { status: 500 });
+  }
+}
+
+// POST - Create new transport route
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.schoolId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const schoolId = parseInt(session.user.schoolId);
+    const body = await request.json();
+    const { title, fare, isActive, vehicleId, pickupPoints } = body;
+
+    if (!title) {
+      return NextResponse.json({ success: false, error: 'Route title is required' }, { status: 400 });
+    }
+
+    // Create route
+    const route = await prisma.transportRoute.create({
+      data: {
+        schoolId,
+        title,
+        fare: fare ? parseFloat(fare) : 0,
+        isActive: isActive ?? true,
+      },
+    });
+
+    // If vehicleId provided, create vehicle-route association
+    if (vehicleId) {
+      await prisma.vehicleRoute.create({
+        data: {
+          vehicleId: parseInt(vehicleId),
+          routeId: route.id,
+        },
+      });
+    }
+
+    // If pickup points provided, create them
+    if (pickupPoints?.length) {
+      for (const pp of pickupPoints) {
+        // First create or find the pickup point
+        let pickupPoint = await prisma.pickupPoint.findFirst({
+          where: { name: pp.name }
+        });
+        
+        if (!pickupPoint) {
+          pickupPoint = await prisma.pickupPoint.create({
+            data: {
+              name: pp.name,
+              address: pp.address,
+            }
+          });
+        }
+
+        // Then create the route-pickup association
+        await prisma.routePickupPoint.create({
+          data: {
+            routeId: route.id,
+            pickupPointId: pickupPoint.id,
+            pickupTime: pp.pickupTime,
+          }
+        });
+      }
+    }
+
+    // Fetch the complete route with relations
+    const completeRoute = await prisma.transportRoute.findUnique({
+      where: { id: route.id },
+      include: {
+        vehicleRoutes: {
+          include: { vehicle: true }
+        },
+        routePickupPoints: {
+          include: { pickupPoint: true }
+        },
+      },
+    });
+
+    return NextResponse.json({ success: true, data: completeRoute }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating route:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create route' }, { status: 500 });
   }
 }

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { TableLoading } from '@/components/ui/loading';
@@ -80,10 +80,12 @@ export default function StudentAttendancePage() {
         const res = await fetch('/api/academics/classes?withSections=true');
         const data = await res.json();
         if (data.success) {
-          setClasses(data.data);
+          const classesArray = data.data || [];
+          setClasses(Array.isArray(classesArray) ? classesArray : []);
         }
       } catch (error) {
         toast.error('Failed to fetch classes');
+        setClasses([]);
       } finally {
         setLoadingClasses(false);
       }
@@ -123,11 +125,12 @@ export default function StudentAttendancePage() {
       const data = await res.json();
 
       if (data.success) {
-        setStudents(data.data.students);
+        const studentsArray = data.data?.students || [];
+        setStudents(Array.isArray(studentsArray) ? studentsArray : []);
         
         // Initialize attendance records from existing data
         const records = new Map<number, AttendanceRecord>();
-        data.data.students.forEach((student: StudentAttendance) => {
+        (Array.isArray(studentsArray) ? studentsArray : []).forEach((student: StudentAttendance) => {
           records.set(student.studentSessionId, {
             studentSessionId: student.studentSessionId,
             studentId: student.studentId,
@@ -264,7 +267,7 @@ export default function StudentAttendancePage() {
               />
             </div>
             <div>
-              <Select
+              <SimpleSelect
                 label="Class"
                 value={selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
@@ -276,7 +279,7 @@ export default function StudentAttendancePage() {
               />
             </div>
             <div>
-              <Select
+              <SimpleSelect
                 label="Section"
                 value={selectedSection}
                 onChange={(e) => setSelectedSection(e.target.value)}

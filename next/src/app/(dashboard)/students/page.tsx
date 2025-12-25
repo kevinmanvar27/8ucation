@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
@@ -89,14 +89,16 @@ export default function StudentsPage() {
       const data = await res.json();
       
       if (data.success) {
-        setStudents(data.data);
-        setTotalPages(data.pagination.totalPages);
-        setTotalCount(data.pagination.total);
+        const studentsArray = data.data || [];
+        setStudents(Array.isArray(studentsArray) ? studentsArray : []);
+        setTotalPages(data.pagination?.totalPages || 1);
+        setTotalCount(data.pagination?.total || 0);
       } else {
         toast.error(data.error || 'Failed to fetch students');
       }
     } catch (error) {
       toast.error('Failed to fetch students');
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -107,10 +109,12 @@ export default function StudentsPage() {
       const res = await fetch('/api/academics/classes?withSections=true');
       const data = await res.json();
       if (data.success) {
-        setClasses(data.data);
+        const classesArray = data.data || [];
+        setClasses(Array.isArray(classesArray) ? classesArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch classes');
+      setClasses([]);
     }
   };
 
@@ -221,7 +225,7 @@ export default function StudentsPage() {
                 />
               </div>
             </div>
-            <Select
+            <SimpleSelect
               value={selectedClass}
               onChange={(e) => {
                 setSelectedClass(e.target.value);
@@ -233,7 +237,7 @@ export default function StudentsPage() {
                 ...classes.map(c => ({ value: c.id, label: c.name }))
               ]}
             />
-            <Select
+            <SimpleSelect
               value={selectedSection}
               onChange={(e) => {
                 setSelectedSection(e.target.value);
@@ -245,7 +249,7 @@ export default function StudentsPage() {
               ]}
               disabled={!selectedClass}
             />
-            <Select
+            <SimpleSelect
               value={selectedStatus}
               onChange={(e) => {
                 setSelectedStatus(e.target.value);

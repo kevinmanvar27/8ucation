@@ -1,120 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/lib/prisma';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
-import prisma from '@/lib/db';
 
-// GET /api/roles - List all roles for the school
+// Helper to parse schoolId from session
+const getSchoolId = (session: { user?: { schoolId?: string | number } } | null) => {
+  if (!session?.user?.schoolId) return null;
+  return typeof session.user.schoolId === 'string' 
+    ? parseInt(session.user.schoolId) 
+    : session.user.schoolId;
+};
+
+// GET - Fetch all roles
 export async function GET() {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.schoolId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const schoolId = getSchoolId(session);
+    if (!schoolId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const schoolId = Number(session.user.schoolId);
-    
     const roles = await prisma.role.findMany({
-      where: {
-        schoolId,
-      },
-      select: {
-        id: true,
-        name: true,
-        slug: true,
-        isSystem: true,
-        isActive: true,
+      where: { schoolId },
+      include: {
         _count: {
-          select: {
-            users: true,
-          },
+          select: { staff: true },
         },
       },
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy: { name: 'asc' },
     });
 
-    return NextResponse.json({ success: true, data: roles });
+    return NextResponse.json(roles);
   } catch (error) {
     console.error('Error fetching roles:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch roles' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch roles' }, { status: 500 });
   }
 }
 
-// POST /api/roles - Create a new role
+// POST - Create new role
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
-    if (!session?.user?.schoolId) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
+    const schoolId = getSchoolId(session);
+    if (!schoolId) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const body = await request.json();
-    const { name, permissionIds } = body;
+    const data = await request.json();
 
-    if (!name) {
-      return NextResponse.json(
-        { success: false, error: 'Role name is required' },
-        { status: 400 }
-      );
-    }
-
-    const schoolId = Number(session.user.schoolId);
-    const slug = name.toLowerCase().replace(/\s+/g, '-');
-    
-    // Check for duplicate slug
-    const existing = await prisma.role.findFirst({
-      where: {
-        schoolId,
-        slug,
-      },
-    });
-
-    if (existing) {
-      return NextResponse.json(
-        { success: false, error: 'A role with this name already exists' },
-        { status: 400 }
-      );
-    }
+    // Generate slug from name
+    const slug = data.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
 
     const role = await prisma.role.create({
       data: {
         schoolId,
-        name,
+        name: data.name,
         slug,
+        permissions: data.permissions || [],
         isSystem: false,
-        permissions: permissionIds?.length > 0 ? {
-          create: permissionIds.map((permissionId: number) => ({
-            permissionId,
-          })),
-        } : undefined,
-      },
-      include: {
-        permissions: {
-          include: {
-            permission: true,
-          },
-        },
       },
     });
 
-    return NextResponse.json({ success: true, data: role }, { status: 201 });
+    return NextResponse.json(role, { status: 201 });
   } catch (error) {
     console.error('Error creating role:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to create role' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to create role' }, { status: 500 });
   }
 }

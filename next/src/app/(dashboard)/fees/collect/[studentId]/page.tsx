@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Loading } from '@/components/ui/loading';
 import { 
@@ -88,10 +88,12 @@ export default function CollectStudentFeePage() {
       const data = await res.json();
       
       if (data.success) {
-        setFeeTypes(data.data);
+        const feeTypesArray = data.data || [];
+        setFeeTypes(Array.isArray(feeTypesArray) ? feeTypesArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch fee types');
+      setFeeTypes([]);
     }
   };
 
@@ -247,7 +249,7 @@ export default function CollectStudentFeePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="feeTypeId">Fee Type</Label>
-                    <Select
+                    <SimpleSelect
                       id="feeTypeId"
                       value={formData.feeTypeId}
                       onChange={(e) => setFormData({...formData, feeTypeId: e.target.value})}
@@ -260,7 +262,7 @@ export default function CollectStudentFeePage() {
 
                   <div className="space-y-2">
                     <Label htmlFor="paymentMethod">Payment Method</Label>
-                    <Select
+                    <SimpleSelect
                       id="paymentMethod"
                       value={formData.paymentMethod}
                       onChange={(e) => setFormData({...formData, paymentMethod: e.target.value})}

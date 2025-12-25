@@ -39,12 +39,14 @@ export default function DesignationsPage() {
       const res = await fetch('/api/staff/designations');
       const data = await res.json();
       if (data.success) {
-        setDesignations(data.data);
+        const designationsArray = data.data || [];
+        setDesignations(Array.isArray(designationsArray) ? designationsArray : []);
       } else {
         toast.error(data.error || 'Failed to fetch designations');
       }
     } catch (error) {
       toast.error('Failed to fetch designations');
+      setDesignations([]);
     } finally {
       setLoading(false);
     }

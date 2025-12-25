@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
@@ -62,10 +62,12 @@ export default function SubjectsPage() {
       const res = await fetch(`/api/academics/subjects?${params.toString()}`);
       const data = await res.json();
       if (data.success) {
-        setSubjects(data.data);
+        const subjectsArray = data.data || [];
+        setSubjects(Array.isArray(subjectsArray) ? subjectsArray : []);
       }
     } catch (error) {
       toast.error('Failed to fetch subjects');
+      setSubjects([]);
     } finally {
       setLoading(false);
     }
@@ -76,10 +78,12 @@ export default function SubjectsPage() {
       const res = await fetch('/api/academics/classes');
       const data = await res.json();
       if (data.success) {
-        setClasses(data.data);
+        const classesArray = data.data || [];
+        setClasses(Array.isArray(classesArray) ? classesArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch classes');
+      setClasses([]);
     }
   }, []);
 
@@ -221,7 +225,7 @@ export default function SubjectsPage() {
                 />
               </div>
             </div>
-            <Select
+            <SimpleSelect
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
               className="w-full sm:w-48"
@@ -347,7 +351,7 @@ export default function SubjectsPage() {
             placeholder="e.g., MATH"
           />
 
-          <Select
+          <SimpleSelect
             label="Subject Type *"
             value={formData.type}
             onChange={(e) => setFormData({ ...formData, type: e.target.value })}

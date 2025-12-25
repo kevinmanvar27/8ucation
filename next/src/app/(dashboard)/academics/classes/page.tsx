@@ -42,10 +42,12 @@ export default function ClassesPage() {
       const res = await fetch('/api/academics/classes?withSections=true');
       const data = await res.json();
       if (data.success) {
-        setClasses(data.data);
+        const classesArray = data.data || [];
+        setClasses(Array.isArray(classesArray) ? classesArray : []);
       }
     } catch (error) {
       toast.error('Failed to fetch classes');
+      setClasses([]);
     } finally {
       setLoading(false);
     }
@@ -56,10 +58,12 @@ export default function ClassesPage() {
       const res = await fetch('/api/academics/sections');
       const data = await res.json();
       if (data.success) {
-        setSections(data.data);
+        const sectionsArray = data.data || [];
+        setSections(Array.isArray(sectionsArray) ? sectionsArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch sections');
+      setSections([]);
     }
   };
 

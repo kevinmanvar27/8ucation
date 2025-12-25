@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
 import { Loading, TableLoading } from '@/components/ui/loading';
 import { 
@@ -46,12 +47,14 @@ export default function FeeTypesPage() {
       const data = await res.json();
       
       if (data.success) {
-        setFeeTypes(data.data);
+        const feeTypesArray = data.data || [];
+        setFeeTypes(Array.isArray(feeTypesArray) ? feeTypesArray : []);
       } else {
         toast.error(data.error || 'Failed to fetch fee types');
       }
     } catch (error) {
       toast.error('Failed to fetch fee types');
+      setFeeTypes([]);
     } finally {
       setLoading(false);
     }

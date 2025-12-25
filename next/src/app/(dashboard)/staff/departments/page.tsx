@@ -39,12 +39,14 @@ export default function DepartmentsPage() {
       const res = await fetch('/api/staff/departments');
       const data = await res.json();
       if (data.success) {
-        setDepartments(data.data);
+        const departmentsArray = data.data || [];
+        setDepartments(Array.isArray(departmentsArray) ? departmentsArray : []);
       } else {
         toast.error(data.error || 'Failed to fetch departments');
       }
     } catch (error) {
       toast.error('Failed to fetch departments');
+      setDepartments([]);
     } finally {
       setLoading(false);
     }

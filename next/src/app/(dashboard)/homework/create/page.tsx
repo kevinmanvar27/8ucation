@@ -1,14 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Calendar } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -38,14 +38,16 @@ export default function CreateHomeworkPage() {
       const res = await fetch('/api/academics/classes?withSections=true&withSubjects=true');
       const data = await res.json();
       if (data.success) {
-        setClasses(data.data);
+        const classesArray = data.data || [];
+        setClasses(Array.isArray(classesArray) ? classesArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch classes');
+      setClasses([]);
     }
   };
 
-  useState(() => {
+  useEffect(() => {
     fetchClasses();
   }, []);
 
@@ -134,7 +136,7 @@ export default function CreateHomeworkPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="classId">Class *</Label>
-                <Select
+                <SimpleSelect
                   id="classId"
                   value={formData.classId}
                   onChange={(e) => setFormData({...formData, classId: e.target.value, sectionId: '', subjectId: ''})}
@@ -147,7 +149,7 @@ export default function CreateHomeworkPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="sectionId">Section *</Label>
-                <Select
+                <SimpleSelect
                   id="sectionId"
                   value={formData.sectionId}
                   onChange={(e) => setFormData({...formData, sectionId: e.target.value})}
@@ -161,7 +163,7 @@ export default function CreateHomeworkPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="subjectId">Subject *</Label>
-                <Select
+                <SimpleSelect
                   id="subjectId"
                   value={formData.subjectId}
                   onChange={(e) => setFormData({...formData, subjectId: e.target.value})}

@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Modal } from '@/components/ui/modal';
 import { Loading, TableLoading } from '@/components/ui/loading';
@@ -76,12 +76,14 @@ export default function FeeMasterPage() {
       const data = await res.json();
       
       if (data.success) {
-        setFeeMasters(data.data);
+        const feeMastersArray = data.data || [];
+        setFeeMasters(Array.isArray(feeMastersArray) ? feeMastersArray : []);
       } else {
         toast.error(data.error || 'Failed to fetch fee masters');
       }
     } catch (error) {
       toast.error('Failed to fetch fee masters');
+      setFeeMasters([]);
     } finally {
       setLoading(false);
     }
@@ -92,10 +94,12 @@ export default function FeeMasterPage() {
       const res = await fetch('/api/academics/classes');
       const data = await res.json();
       if (data.success) {
-        setClasses(data.data);
+        const classesArray = data.data || [];
+        setClasses(Array.isArray(classesArray) ? classesArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch classes');
+      setClasses([]);
     }
   };
 
@@ -104,10 +108,12 @@ export default function FeeMasterPage() {
       const res = await fetch('/api/fees/groups');
       const data = await res.json();
       if (data.success) {
-        setFeeGroups(data.data);
+        const feeGroupsArray = data.data || [];
+        setFeeGroups(Array.isArray(feeGroupsArray) ? feeGroupsArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch fee groups');
+      setFeeGroups([]);
     }
   };
 
@@ -116,10 +122,12 @@ export default function FeeMasterPage() {
       const res = await fetch('/api/fees/types');
       const data = await res.json();
       if (data.success) {
-        setFeeTypes(data.data);
+        const feeTypesArray = data.data || [];
+        setFeeTypes(Array.isArray(feeTypesArray) ? feeTypesArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch fee types');
+      setFeeTypes([]);
     }
   };
 
@@ -317,7 +325,7 @@ export default function FeeMasterPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="classId">Class *</Label>
-            <Select
+            <SimpleSelect
               id="classId"
               value={formData.classId}
               onChange={(e) => setFormData({...formData, classId: e.target.value})}
@@ -330,7 +338,7 @@ export default function FeeMasterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="groupId">Fee Group *</Label>
-            <Select
+            <SimpleSelect
               id="groupId"
               value={formData.groupId}
               onChange={(e) => setFormData({...formData, groupId: e.target.value})}
@@ -343,7 +351,7 @@ export default function FeeMasterPage() {
 
           <div className="space-y-2">
             <Label htmlFor="typeId">Fee Type *</Label>
-            <Select
+            <SimpleSelect
               id="typeId"
               value={formData.typeId}
               onChange={(e) => setFormData({...formData, typeId: e.target.value})}

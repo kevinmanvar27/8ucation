@@ -87,13 +87,15 @@ export default function ParentsPage() {
       const data = await res.json();
 
       if (data.success) {
-        setParents(data.data);
-        setPagination(data.pagination);
+        const parentsArray = data.data || [];
+        setParents(Array.isArray(parentsArray) ? parentsArray : []);
+        setPagination(data.pagination || { page: 1, limit: 20, total: 0, totalPages: 1 });
       } else {
         toast.error(data.error || 'Failed to fetch parents');
       }
     } catch (error) {
       toast.error('Failed to fetch parents');
+      setParents([]);
     } finally {
       setLoading(false);
     }

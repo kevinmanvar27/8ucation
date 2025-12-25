@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save, User, Briefcase, MapPin, CreditCard, Link2, Lock } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -256,7 +256,7 @@ export default function AddStaffPage() {
               onChange={(e) => handleChange('lastName', e.target.value)}
               placeholder="Enter last name"
             />
-            <Select
+            <SimpleSelect
               label="Gender *"
               value={formData.gender}
               onChange={(e) => handleChange('gender', e.target.value)}
@@ -291,7 +291,7 @@ export default function AddStaffPage() {
               onChange={(e) => handleChange('emergencyPhone', e.target.value)}
               placeholder="Enter emergency contact"
             />
-            <Select
+            <SimpleSelect
               label="Marital Status"
               value={formData.maritalStatus}
               onChange={(e) => handleChange('maritalStatus', e.target.value)}
@@ -315,7 +315,7 @@ export default function AddStaffPage() {
       case 'employment':
         return (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <Select
+            <SimpleSelect
               label="Role *"
               value={formData.roleId}
               onChange={(e) => handleChange('roleId', e.target.value)}
@@ -325,7 +325,7 @@ export default function AddStaffPage() {
                 label: role.name,
               }))}
             />
-            <Select
+            <SimpleSelect
               label="Department"
               value={formData.departmentId}
               onChange={(e) => handleChange('departmentId', e.target.value)}
@@ -335,7 +335,7 @@ export default function AddStaffPage() {
                 label: dept.name,
               }))}
             />
-            <Select
+            <SimpleSelect
               label="Designation"
               value={formData.designationId}
               onChange={(e) => handleChange('designationId', e.target.value)}
@@ -370,7 +370,7 @@ export default function AddStaffPage() {
               onChange={(e) => handleChange('basicSalary', e.target.value)}
               placeholder="Enter salary"
             />
-            <Select
+            <SimpleSelect
               label="Contract Type"
               value={formData.contractType}
               onChange={(e) => handleChange('contractType', e.target.value)}

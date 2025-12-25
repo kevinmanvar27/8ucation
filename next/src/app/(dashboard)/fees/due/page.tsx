@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Loading, TableLoading } from '@/components/ui/loading';
@@ -66,14 +66,16 @@ export default function DueFeesPage() {
       const data = await res.json();
       
       if (data.success) {
-        setStudents(data.data);
-        setTotalPages(data.pagination.totalPages);
-        setTotalCount(data.pagination.total);
+        const studentsArray = data.data || [];
+        setStudents(Array.isArray(studentsArray) ? studentsArray : []);
+        setTotalPages(data.pagination?.totalPages || 1);
+        setTotalCount(data.pagination?.total || 0);
       } else {
         toast.error(data.error || 'Failed to fetch students');
       }
     } catch (error) {
       toast.error('Failed to fetch students');
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -116,7 +118,7 @@ export default function DueFeesPage() {
                 />
               </div>
             </div>
-            <Select
+            <SimpleSelect
               value={selectedClass}
               onChange={(e) => {
                 setSelectedClass(e.target.value);
@@ -131,7 +133,7 @@ export default function DueFeesPage() {
                 // Add more classes as needed
               ]}
             />
-            <Select
+            <SimpleSelect
               value={selectedSection}
               onChange={(e) => {
                 setSelectedSection(e.target.value);

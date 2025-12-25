@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Select } from '@/components/ui/select';
+import { SimpleSelect } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
@@ -84,12 +84,14 @@ export default function StaffPage() {
       const data = await res.json();
 
       if (data.success) {
-        setStaff(data.data);
-        setTotalPages(data.pagination.totalPages);
-        setTotal(data.pagination.total);
+        const staffArray = data.data || [];
+        setStaff(Array.isArray(staffArray) ? staffArray : []);
+        setTotalPages(data.pagination?.totalPages || 1);
+        setTotal(data.pagination?.total || 0);
       }
     } catch (error) {
       toast.error('Failed to fetch staff');
+      setStaff([]);
     } finally {
       setLoading(false);
     }
@@ -105,10 +107,18 @@ export default function StaffPage() {
       const rolesData = await rolesRes.json();
       const deptData = await deptRes.json();
 
-      if (rolesData.success) setRoles(rolesData.data);
-      if (deptData.success) setDepartments(deptData.data);
+      if (rolesData.success) {
+        const rolesArray = rolesData.data || [];
+        setRoles(Array.isArray(rolesArray) ? rolesArray : []);
+      }
+      if (deptData.success) {
+        const deptArray = deptData.data || [];
+        setDepartments(Array.isArray(deptArray) ? deptArray : []);
+      }
     } catch (error) {
       console.error('Failed to fetch filters');
+      setRoles([]);
+      setDepartments([]);
     }
   }, []);
 
@@ -210,7 +220,7 @@ export default function StaffPage() {
                 className="pl-9"
               />
             </div>
-            <Select
+            <SimpleSelect
               value={filterRole}
               onChange={(e) => {
                 setFilterRole(e.target.value);
@@ -224,7 +234,7 @@ export default function StaffPage() {
                 })),
               ]}
             />
-            <Select
+            <SimpleSelect
               value={filterDepartment}
               onChange={(e) => {
                 setFilterDepartment(e.target.value);
@@ -238,7 +248,7 @@ export default function StaffPage() {
                 })),
               ]}
             />
-            <Select
+            <SimpleSelect
               value={filterStatus}
               onChange={(e) => {
                 setFilterStatus(e.target.value);
