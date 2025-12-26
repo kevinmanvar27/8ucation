@@ -30,7 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Loader2, Pencil, Trash2, Calendar } from 'lucide-react';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, isValid, parseISO } from 'date-fns';
 import Link from 'next/link';
 
 interface Exam {
@@ -42,6 +42,18 @@ interface Exam {
   status: string;
   session: { name: string } | null;
 }
+
+// Helper function to safely format dates
+const formatDate = (dateString: string | null | undefined, formatStr: string = 'MMM dd, yyyy'): string => {
+  if (!dateString) return '-';
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    if (!isValid(date)) return '-';
+    return format(date, formatStr);
+  } catch {
+    return '-';
+  }
+};
 
 export default function ExamsPage() {
   const [exams, setExams] = useState<Exam[]>([]);
@@ -65,10 +77,12 @@ export default function ExamsPage() {
       const res = await fetch('/api/exams');
       if (res.ok) {
         const data = await res.json();
-        setExams(data.data || data || []);
+        const examsArray = data.data || data || [];
+        setExams(Array.isArray(examsArray) ? examsArray : []);
       }
     } catch (error) {
       toast.error('Failed to fetch exams');
+      setExams([]);
     } finally {
       setLoading(false);
     }
@@ -110,8 +124,8 @@ export default function ExamsPage() {
     setFormData({
       name: exam.name,
       description: exam.description || '',
-      startDate: exam.startDate.split('T')[0],
-      endDate: exam.endDate.split('T')[0],
+      startDate: exam.startDate ? exam.startDate.split('T')[0] : '',
+      endDate: exam.endDate ? exam.endDate.split('T')[0] : '',
     });
     setIsDialogOpen(true);
   };
@@ -265,8 +279,8 @@ export default function ExamsPage() {
                 exams.map((exam) => (
                   <TableRow key={exam.id}>
                     <TableCell className="font-medium">{exam.name}</TableCell>
-                    <TableCell>{format(new Date(exam.startDate), 'MMM dd, yyyy')}</TableCell>
-                    <TableCell>{format(new Date(exam.endDate), 'MMM dd, yyyy')}</TableCell>
+                    <TableCell>{formatDate(exam.startDate)}</TableCell>
+                    <TableCell>{formatDate(exam.endDate)}</TableCell>
                     <TableCell>{getStatusBadge(exam.status)}</TableCell>
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(exam)}>

@@ -42,10 +42,13 @@ export default function DisabledStudentsPage() {
       const res = await fetch('/api/students?status=inactive');
       if (res.ok) {
         const data = await res.json();
-        setStudents(data.students || data);
+        // Handle various API response formats
+        const studentsArray = data.students || data.data || data;
+        setStudents(Array.isArray(studentsArray) ? studentsArray : []);
       }
     } catch (error) {
       toast.error('Failed to fetch disabled students');
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -72,12 +75,12 @@ export default function DisabledStudentsPage() {
     }
   };
 
-  const filteredStudents = students.filter(
+  const filteredStudents = Array.isArray(students) ? students.filter(
     (student) =>
-      student.firstName.toLowerCase().includes(search.toLowerCase()) ||
-      student.lastName.toLowerCase().includes(search.toLowerCase()) ||
-      student.admissionNo.toLowerCase().includes(search.toLowerCase())
-  );
+      (student.firstName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+      (student.lastName?.toLowerCase() || '').includes(search.toLowerCase()) ||
+      (student.admissionNo?.toLowerCase() || '').includes(search.toLowerCase())
+  ) : [];
 
   if (loading) {
     return (

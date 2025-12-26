@@ -26,15 +26,15 @@ interface Student {
   lastName: string;
   class: {
     name: string;
-  };
+  } | null;
   section: {
     name: string;
-  };
+  } | null;
   fees: {
     total: number;
     paid: number;
     due: number;
-  };
+  } | null;
 }
 
 export default function DueFeesPage() {
@@ -86,9 +86,22 @@ export default function DueFeesPage() {
   }, [currentPage, searchTerm, selectedClass, selectedSection]);
 
   const handleCollectFee = (studentId: string) => {
-    // Redirect to fee collection page for this student
     window.location.href = `/fees/collect/${studentId}`;
   };
+
+  // Helper to safely get class/section display
+  const getClassSection = (student: Student) => {
+    const className = student.class?.name || '-';
+    const sectionName = student.section?.name;
+    return sectionName ? `${className} - ${sectionName}` : className;
+  };
+
+  // Helper to safely get fees
+  const getFees = (student: Student) => ({
+    total: student.fees?.total ?? 0,
+    paid: student.fees?.paid ?? 0,
+    due: student.fees?.due ?? 0,
+  });
 
   return (
     <div className="space-y-6">
@@ -130,7 +143,6 @@ export default function DueFeesPage() {
                 { value: '1', label: 'Class 1' },
                 { value: '2', label: 'Class 2' },
                 { value: '3', label: 'Class 3' },
-                // Add more classes as needed
               ]}
             />
             <SimpleSelect
@@ -144,7 +156,6 @@ export default function DueFeesPage() {
                 { value: 'A', label: 'Section A' },
                 { value: 'B', label: 'Section B' },
                 { value: 'C', label: 'Section C' },
-                // Add more sections as needed
               ]}
               disabled={!selectedClass}
             />
@@ -187,60 +198,61 @@ export default function DueFeesPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {students.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell>
-                          <div className="flex items-center gap-3">
-                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-sm font-medium text-primary">
-                                {student.firstName[0]}{student.lastName[0]}
+                    {students.map((student) => {
+                      const fees = getFees(student);
+                      return (
+                        <TableRow key={student.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-3">
+                              <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center">
+                                <span className="text-sm font-medium text-primary">
+                                  {student.firstName?.[0] || ''}{student.lastName?.[0] || ''}
+                                </span>
+                              </div>
+                              <div>
+                                <p className="font-medium">
+                                  {student.firstName} {student.lastName}
+                                </p>
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="font-mono">{student.admissionNo}</span>
+                          </TableCell>
+                          <TableCell>
+                            <p className="font-medium">{getClassSection(student)}</p>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-4 w-4 text-muted-foreground" />
+                              <span>{fees.total.toFixed(2)}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-green-600">{fees.paid.toFixed(2)}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-red-600 font-medium">
+                                {fees.due.toFixed(2)}
                               </span>
                             </div>
-                            <div>
-                              <p className="font-medium">
-                                {student.firstName} {student.lastName}
-                              </p>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-mono">{student.admissionNo}</span>
-                        </TableCell>
-                        <TableCell>
-                          <p className="font-medium">
-                            {student.class.name} - {student.section.name}
-                          </p>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span>{student.fees.total.toFixed(2)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-green-600">{student.fees.paid.toFixed(2)}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            <span className="text-red-600 font-medium">
-                              {student.fees.due.toFixed(2)}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button 
-                            onClick={() => handleCollectFee(student.id)}
-                          >
-                            <CreditCard className="mr-2 h-4 w-4" />
-                            Collect Fee
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button 
+                              onClick={() => handleCollectFee(student.id)}
+                            >
+                              <CreditCard className="mr-2 h-4 w-4" />
+                              Collect Fee
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

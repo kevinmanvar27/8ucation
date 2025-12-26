@@ -63,10 +63,12 @@ export default function HostelPage() {
       const res = await fetch('/api/hostel');
       if (res.ok) {
         const data = await res.json();
-        setHostels(data.data || data || []);
+        const hostelsArray = data.data || data || [];
+        setHostels(Array.isArray(hostelsArray) ? hostelsArray : []);
       }
     } catch (error) {
       toast.error('Failed to fetch hostels');
+      setHostels([]);
     } finally {
       setLoading(false);
     }
@@ -143,8 +145,10 @@ export default function HostelPage() {
     }
   };
 
-  const totalBeds = hostels.reduce((sum, h) => sum + h.totalBeds, 0);
-  const occupiedBeds = hostels.reduce((sum, h) => sum + h.occupiedBeds, 0);
+  // Safe calculations with array check
+  const hostelsArray = Array.isArray(hostels) ? hostels : [];
+  const totalBeds = hostelsArray.reduce((sum, h) => sum + (h.totalBeds || 0), 0);
+  const occupiedBeds = hostelsArray.reduce((sum, h) => sum + (h.occupiedBeds || 0), 0);
 
   const openNewDialog = () => {
     setEditingHostel(null);
@@ -261,7 +265,7 @@ export default function HostelPage() {
             <Building className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{hostels.length}</div>
+            <div className="text-2xl font-bold">{hostelsArray.length}</div>
           </CardContent>
         </Card>
         <Card>
@@ -305,14 +309,14 @@ export default function HostelPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {hostels.length === 0 ? (
+              {hostelsArray.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={7} className="text-center text-muted-foreground">
                     No hostels found
                   </TableCell>
                 </TableRow>
               ) : (
-                hostels.map((hostel) => (
+                hostelsArray.map((hostel) => (
                   <TableRow key={hostel.id}>
                     <TableCell className="font-medium">{hostel.name}</TableCell>
                     <TableCell>
@@ -328,17 +332,17 @@ export default function HostelPage() {
                         </div>
                       ) : '-'}
                     </TableCell>
-                    <TableCell>{hostel.totalRooms}</TableCell>
-                    <TableCell>{hostel.totalBeds}</TableCell>
+                    <TableCell>{hostel.totalRooms || 0}</TableCell>
+                    <TableCell>{hostel.totalBeds || 0}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
                           <div 
                             className="h-full bg-blue-500" 
-                            style={{ width: `${hostel.totalBeds > 0 ? (hostel.occupiedBeds / hostel.totalBeds) * 100 : 0}%` }}
+                            style={{ width: `${hostel.totalBeds > 0 ? ((hostel.occupiedBeds || 0) / hostel.totalBeds) * 100 : 0}%` }}
                           />
                         </div>
-                        <span className="text-sm">{hostel.occupiedBeds}/{hostel.totalBeds}</span>
+                        <span className="text-sm">{hostel.occupiedBeds || 0}/{hostel.totalBeds || 0}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-right">

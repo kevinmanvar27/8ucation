@@ -30,7 +30,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Plus, Loader2, RotateCcw, BookOpen, AlertTriangle } from 'lucide-react';
 import { toast } from 'sonner';
-import { format, differenceInDays } from 'date-fns';
+import { format, differenceInDays, isValid, parseISO } from 'date-fns';
 
 interface BookIssue {
   id: string;
@@ -55,6 +55,29 @@ interface Member {
   name: string;
   membershipId: string;
 }
+
+// Helper function to safely format dates
+const formatDate = (dateString: string | null | undefined, formatStr: string = 'MMM d, yyyy'): string => {
+  if (!dateString) return '-';
+  try {
+    const date = typeof dateString === 'string' ? parseISO(dateString) : new Date(dateString);
+    if (!isValid(date)) return '-';
+    return format(date, formatStr);
+  } catch {
+    return '-';
+  }
+};
+
+// Helper function to safely calculate days difference
+const safeDifferenceInDays = (date1: Date, dateString: string): number => {
+  try {
+    const date2 = parseISO(dateString);
+    if (!isValid(date2)) return 0;
+    return differenceInDays(date1, date2);
+  } catch {
+    return 0;
+  }
+};
 
 export default function BookIssuePage() {
   const [issues, setIssues] = useState<BookIssue[]>([]);
@@ -81,10 +104,12 @@ export default function BookIssuePage() {
       const res = await fetch('/api/library/issue');
       if (res.ok) {
         const data = await res.json();
-        setIssues(data.data || data || []);
+        const issuesArray = data.data || data || [];
+        setIssues(Array.isArray(issuesArray) ? issuesArray : []);
       }
     } catch (error) {
       toast.error('Failed to fetch issues');
+      setIssues([]);
     } finally {
       setLoading(false);
     }
@@ -109,10 +134,12 @@ export default function BookIssuePage() {
       const res = await fetch('/api/library/members');
       if (res.ok) {
         const data = await res.json();
-        setMembers(data.data || data || []);
+        const membersArray = data.data || data || [];
+        setMembers(Array.isArray(membersArray) ? membersArray : []);
       }
     } catch (error) {
       console.error('Failed to fetch members');
+      setMembers([]);
     }
   };
 
@@ -176,30 +203,37 @@ export default function BookIssuePage() {
     if (issue.returnDate) {
       return <Badge className="bg-green-500">Returned</Badge>;
     }
-    const daysOverdue = differenceInDays(new Date(), new Date(issue.dueDate));
+    const daysOverdue = safeDifferenceInDays(new Date(), issue.dueDate);
     if (daysOverdue > 0) {
       return <Badge className="bg-red-500">Overdue ({daysOverdue} days)</Badge>;
     }
     return <Badge className="bg-blue-500">Issued</Badge>;
   };
 
-  const filteredIssues = issues.filter((issue) => {
+  // Ensure issues is an array before filtering
+  const issuesArray = Array.isArray(issues) ? issues : [];
+  
+  const filteredIssues = issuesArray.filter((issue) => {
     if (filter === 'issued') return !issue.returnDate;
     if (filter === 'returned') return !!issue.returnDate;
     if (filter === 'overdue') {
-      return !issue.returnDate && differenceInDays(new Date(), new Date(issue.dueDate)) > 0;
+      return !issue.returnDate && safeDifferenceInDays(new Date(), issue.dueDate) > 0;
     }
     return true;
   });
 
-  const overdueCount = issues.filter(
-    (i) => !i.returnDate && differenceInDays(new Date(), new Date(i.dueDate)) > 0
+  const overdueCount = issuesArray.filter(
+    (i) => !i.returnDate && safeDifferenceInDays(new Date(), i.dueDate) > 0
   ).length;
 
   const openNewDialog = () => {
     resetForm();
     setIsDialogOpen(true);
   };
+
+  // Ensure arrays for mapping
+  const booksArray = Array.isArray(books) ? books : [];
+  const membersArray = Array.isArray(members) ? members : [];
 
   if (loading) {
     return (
@@ -238,7 +272,7 @@ export default function BookIssuePage() {
                     <SelectValue placeholder="Select book" />
                   </SelectTrigger>
                   <SelectContent>
-                    {books.filter((book) => book.id).map((book) => (
+                    {booksArray.filter((book) => book.id).map((book) => (
                       <SelectItem key={book.id} value={String(book.id)}>
                         {book.title} - {book.author} ({book.availableQuantity} available)
                       </SelectItem>
@@ -256,7 +290,7 @@ export default function BookIssuePage() {
                     <SelectValue placeholder="Select member" />
                   </SelectTrigger>
                   <SelectContent>
-                    {members.filter((member) => member.id).map((member) => (
+                    {membersArray.filter((member) => member.id).map((member) => (
                       <SelectItem key={member.id} value={String(member.id)}>
                         {member.name} ({member.membershipId})
                       </SelectItem>
@@ -296,7 +330,7 @@ export default function BookIssuePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {issues.filter((i) => !i.returnDate).length}
+              {issuesArray.filter((i) => !i.returnDate).length}
             </div>
           </CardContent>
         </Card>
@@ -315,7 +349,7 @@ export default function BookIssuePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {issues.filter((i) => i.returnDate).length}
+              {issuesArray.filter((i) => i.returnDate).length}
             </div>
           </CardContent>
         </Card>
@@ -362,18 +396,16 @@ export default function BookIssuePage() {
                 filteredIssues.map((issue) => (
                   <TableRow key={issue.id}>
                     <TableCell>
-                      <div className="font-medium">{issue.book.title}</div>
-                      <div className="text-xs text-muted-foreground">{issue.book.author}</div>
+                      <div className="font-medium">{issue.book?.title || '-'}</div>
+                      <div className="text-xs text-muted-foreground">{issue.book?.author || '-'}</div>
                     </TableCell>
                     <TableCell>
-                      <div>{issue.member.name}</div>
-                      <div className="text-xs text-muted-foreground">{issue.member.membershipId}</div>
+                      <div>{issue.member?.name || '-'}</div>
+                      <div className="text-xs text-muted-foreground">{issue.member?.membershipId || '-'}</div>
                     </TableCell>
-                    <TableCell>{format(new Date(issue.issueDate), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>{format(new Date(issue.dueDate), 'MMM d, yyyy')}</TableCell>
-                    <TableCell>
-                      {issue.returnDate ? format(new Date(issue.returnDate), 'MMM d, yyyy') : '-'}
-                    </TableCell>
+                    <TableCell>{formatDate(issue.issueDate)}</TableCell>
+                    <TableCell>{formatDate(issue.dueDate)}</TableCell>
+                    <TableCell>{formatDate(issue.returnDate)}</TableCell>
                     <TableCell>{getStatusBadge(issue)}</TableCell>
                     <TableCell className="text-right">
                       {!issue.returnDate && (
