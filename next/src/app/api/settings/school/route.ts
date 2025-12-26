@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const school = await prisma.school.findUnique({
+    const school = await prisma.schools.findUnique({
       where: { id: schoolId },
       select: {
         id: true,
@@ -59,7 +59,7 @@ export async function PUT(request: NextRequest) {
 
     const data = await request.json();
 
-    const school = await prisma.school.update({
+    const school = await prisma.schools.update({
       where: { id: schoolId },
       data: {
         name: data.name,

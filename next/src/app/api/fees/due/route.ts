@@ -24,30 +24,30 @@ export async function GET(request: NextRequest) {
     // Build where clause for student sessions
     const whereSession: any = {};
     if (sessionId) whereSession.sessionId = parseInt(sessionId);
-    if (classId) whereSession.classSection = { classId: parseInt(classId) };
+    if (classId) whereSession.class_sections = { classId: parseInt(classId) };
 
-    const students = await prisma.student.findMany({
+    const students = await prisma.students.findMany({
       where: whereStudent,
       include: {
-        studentSessions: {
+        student_sessions: {
           where: Object.keys(whereSession).length ? whereSession : undefined,
           include: {
-            classSection: { include: { class: true, section: true } },
-            session: true,
-            feesMasters: {
+            class_sections: { include: { classes: true, sections: true } },
+            sessions: true,
+            student_fees_masters: {
               where: { isActive: true },
               include: {
-                feesMaster: {
+                fees_masters: {
                   include: {
-                    feeGroup: {
+                    fee_groups: {
                       include: {
-                        feeGroupTypes: { include: { feeType: true } },
+                        fee_group_types: { include: { fee_types: true } },
                       },
                     },
-                    class: true,
+                    classes: true,
                   },
                 },
-                feePayments: true,
+                fee_payments: true,
               },
             },
           },
@@ -57,18 +57,18 @@ export async function GET(request: NextRequest) {
 
     // Calculate due fees for each student
     const dueFeesData = students.map(student => {
-      const sessionsData = student.studentSessions.map(ss => {
+      const sessionsData = student.student_sessions.map(ss => {
         // Get all assigned fee types with amounts from StudentFeesMaster
         const assignedFees: any[] = [];
         
-        ss.feesMasters.forEach(sfm => {
-          const feeGroup = sfm.feesMaster.feeGroup;
-          feeGroup.feeGroupTypes.forEach(fgt => {
+        ss.student_fees_masters.forEach(sfm => {
+          const feeGroup = sfm.fees_masters.fee_groups;
+          feeGroup.fee_group_types.forEach(fgt => {
             assignedFees.push({
               studentFeesMasterId: sfm.id,
               feeGroupTypeId: fgt.id,
               feeTypeId: fgt.feeTypeId,
-              feeTypeName: fgt.feeType.name,
+              feeTypeName: fgt.fee_types.name,
               feeGroupId: feeGroup.id,
               feeGroupName: feeGroup.name,
               amount: fgt.amount,
@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
 
           // Calculate paid amounts for this StudentFeesMaster
           const paidAmounts: { [key: number]: number } = {};
-          sfm.feePayments.forEach(fp => {
+          sfm.fee_payments.forEach(fp => {
             // Sum all payments for this fee master
             paidAmounts[sfm.id] = (paidAmounts[sfm.id] || 0) + Number(fp.amount);
           });
@@ -91,13 +91,13 @@ export async function GET(request: NextRequest) {
         let totalAssigned = 0;
         let totalPaid = 0;
         
-        ss.feesMasters.forEach(sfm => {
+        ss.student_fees_masters.forEach(sfm => {
           // Total assigned from fee group types
-          sfm.feesMaster.feeGroup.feeGroupTypes.forEach(fgt => {
+          sfm.fees_masters.fee_groups.fee_group_types.forEach(fgt => {
             totalAssigned += Number(fgt.amount);
           });
           // Total paid
-          sfm.feePayments.forEach(fp => {
+          sfm.fee_payments.forEach(fp => {
             totalPaid += Number(fp.amount);
           });
         });
@@ -119,11 +119,11 @@ export async function GET(request: NextRequest) {
 
         return {
           sessionId: ss.sessionId,
-          sessionName: ss.session.session,
-          classSection: ss.classSection ? {
+          sessionName: ss.sessions.session,
+          classSection: ss.class_sections ? {
             id: ss.classSectionId,
-            className: ss.classSection.class.className,
-            sectionName: ss.classSection.section.sectionName,
+            className: ss.class_sections.classes.className,
+            sectionName: ss.class_sections.sections.sectionName,
           } : null,
           feeDetails: assignedFees,
           totalAssigned,

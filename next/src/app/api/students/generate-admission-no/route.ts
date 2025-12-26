@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const year = new Date().getFullYear();
     
     // Get the latest student to determine the next admission number
-    const latestStudent = await prisma.student.findFirst({
+    const latestStudent = await prisma.students.findFirst({
       where: { schoolId },
       orderBy: { id: 'desc' },
     });

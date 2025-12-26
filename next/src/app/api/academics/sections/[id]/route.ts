@@ -28,20 +28,20 @@ export async function GET(
 
     const schoolId = Number(session.user.schoolId);
 
-    const section = await prisma.section.findFirst({
+    const section = await prisma.sections.findFirst({
       where: {
         id: sectionId,
         schoolId,
       },
       include: {
-        classSections: {
+        class_sections: {
           include: {
-            class: true,
+            classes: true,
           },
         },
         _count: {
           select: {
-            classSections: true,
+            class_sections: true,
           },
         },
       },
@@ -87,7 +87,7 @@ export async function PUT(
     const schoolId = Number(session.user.schoolId);
 
     // Check if section exists
-    const existingSection = await prisma.section.findFirst({
+    const existingSection = await prisma.sections.findFirst({
       where: {
         id: sectionId,
         schoolId,
@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Check for duplicate name
-    const duplicateSection = await prisma.section.findFirst({
+    const duplicateSection = await prisma.sections.findFirst({
       where: {
         schoolId,
         sectionName: validation.data.name,
@@ -114,7 +114,7 @@ export async function PUT(
       );
     }
 
-    const section = await prisma.section.update({
+    const section = await prisma.sections.update({
       where: { id: sectionId },
       data: {
         sectionName: validation.data.name,
@@ -124,7 +124,7 @@ export async function PUT(
       include: {
         _count: {
           select: {
-            classSections: true,
+            class_sections: true,
           },
         },
       },
@@ -164,7 +164,7 @@ export async function DELETE(
     const schoolId = Number(session.user.schoolId);
 
     // Check if section exists
-    const section = await prisma.section.findFirst({
+    const section = await prisma.sections.findFirst({
       where: {
         id: sectionId,
         schoolId,
@@ -172,7 +172,7 @@ export async function DELETE(
       include: {
         _count: {
           select: {
-            classSections: true,
+            class_sections: true,
           },
         },
       },
@@ -183,14 +183,14 @@ export async function DELETE(
     }
 
     // Check if section is assigned to any classes
-    if (section._count.classSections > 0) {
+    if (section._count.class_sections > 0) {
       return NextResponse.json(
-        { success: false, error: `Cannot delete section. It is assigned to ${section._count.classSections} class(es). Remove the section from all classes first.` },
+        { success: false, error: `Cannot delete section. It is assigned to ${section._count.class_sections} class(es). Remove the section from all classes first.` },
         { status: 400 }
       );
     }
 
-    await prisma.section.delete({
+    await prisma.sections.delete({
       where: { id: sectionId },
     });
 

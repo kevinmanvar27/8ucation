@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 
     // Class/Section filter via StudentSession
     if (classSectionId || sessionId) {
-      where.studentSessions = {
+      where.student_sessions = {
         some: {
           ...(classSectionId && { classSectionId: parseInt(classSectionId) }),
           ...(sessionId && { sessionId: parseInt(sessionId) }),
@@ -58,40 +58,40 @@ export async function GET(request: NextRequest) {
 
     // Get students with related data
     const [students, total] = await Promise.all([
-      prisma.student.findMany({
+      prisma.students.findMany({
         where,
         skip,
         take: limit,
         orderBy: { createdAt: 'desc' },
         include: {
-          parent: {
+          parents: {
             select: {
               fatherName: true,
               motherName: true,
               guardianPhone: true,
             },
           },
-          studentSessions: {
+          student_sessions: {
             take: 1,
             orderBy: { createdAt: 'desc' },
             include: {
-              classSection: {
+              class_sections: {
                 include: {
-                  class: { select: { className: true } },
-                  section: { select: { sectionName: true } },
+                  classes: { select: { className: true } },
+                  sections: { select: { sectionName: true } },
                 },
               },
-              session: { select: { session: true } },
+              sessions: { select: { session: true } },
             },
           },
         },
       }),
-      prisma.student.count({ where }),
+      prisma.students.count({ where }),
     ]);
 
     // Transform data
     const data = students.map((student) => {
-      const currentSession = student.studentSessions[0];
+      const currentSession = student.student_sessions[0];
       return {
         id: student.id,
         admissionNo: student.admissionNo,
@@ -104,12 +104,12 @@ export async function GET(request: NextRequest) {
         image: student.image,
         isActive: student.isActive,
         currentSession: currentSession ? {
-          class: currentSession.classSection?.class?.className,
-          section: currentSession.classSection?.section?.sectionName,
-          session: currentSession.session?.session,
+          class: currentSession.class_sections?.classes?.className,
+          section: currentSession.class_sections?.sections?.sectionName,
+          session: currentSession.sessions?.session,
           rollNo: currentSession.rollNo,
         } : null,
-        parent: student.parent,
+        parent: student.parents,
       };
     });
 
@@ -185,7 +185,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createStudentSchema.parse(body);
 
     // Check if admission number already exists
-    const existingStudent = await prisma.student.findFirst({
+    const existingStudent = await prisma.students.findFirst({
       where: {
         schoolId,
         admissionNo: validatedData.admissionNo,
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
     // Create student with session in a transaction
     const student = await prisma.$transaction(async (tx) => {
       // Create student with flat parent fields
-      const newStudent = await tx.student.create({
+      const newStudent = await tx.students.create({
         data: {
           schoolId,
           admissionNo: validatedData.admissionNo,
@@ -242,7 +242,7 @@ export async function POST(request: NextRequest) {
       // Create student session if class is provided
       if (validatedData.classId && validatedData.sectionId && validatedData.sessionId) {
         // Find the class-section mapping
-        const classSection = await tx.classSection.findFirst({
+        const classSection = await tx.class_sections.findFirst({
           where: {
             classId: validatedData.classId,
             sectionId: validatedData.sectionId,
@@ -250,7 +250,7 @@ export async function POST(request: NextRequest) {
         });
         
         if (classSection) {
-          await tx.studentSession.create({
+          await tx.student_sessions.create({
             data: {
               studentId: newStudent.id,
               sessionId: validatedData.sessionId,

@@ -23,7 +23,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const academicSession = await prisma.session.findFirst({
+    const academicSession = await prisma.sessions.findFirst({
       where: {
         id: parseInt(params.id),
         schoolId,
@@ -55,7 +55,7 @@ export async function PUT(
 
     const data = await request.json();
 
-    const academicSession = await prisma.session.update({
+    const academicSession = await prisma.sessions.update({
       where: {
         id: parseInt(params.id),
       },
@@ -86,7 +86,7 @@ export async function DELETE(
     }
 
     // Check if session is active
-    const academicSession = await prisma.session.findFirst({
+    const academicSession = await prisma.sessions.findFirst({
       where: {
         id: parseInt(params.id),
         schoolId,
@@ -100,7 +100,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.session.delete({
+    await prisma.sessions.delete({
       where: { id: parseInt(params.id) },
     });
 

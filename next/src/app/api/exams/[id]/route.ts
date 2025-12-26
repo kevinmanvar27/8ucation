@@ -15,16 +15,16 @@ export async function GET(
     }
 
     const schoolId = parseInt(session.user.schoolId);
-    const exam = await prisma.exam.findFirst({
+    const exam = await prisma.exams.findFirst({
       where: { id: parseInt(params.id), schoolId },
       include: {
-        examSchedules: { include: { session: true } },
-        examSubjects: {
+        exam_schedules: { include: { sessions: true } },
+        exam_subjects: {
           include: {
-            subject: true,
-            examResults: {
+            subjects: true,
+            exam_results: {
               include: {
-                student: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
+                students: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
               },
             },
           },
@@ -59,7 +59,7 @@ export async function PUT(
     const { name, description, isPublished, isActive } = body;
 
     // Verify exam belongs to school
-    const existing = await prisma.exam.findFirst({
+    const existing = await prisma.exams.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -67,12 +67,12 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Exam not found' }, { status: 404 });
     }
 
-    const exam = await prisma.exam.update({
+    const exam = await prisma.exams.update({
       where: { id: parseInt(params.id) },
       data: { name, description, isPublished, isActive },
       include: {
-        examSchedules: { include: { session: true } },
-        examSubjects: { include: { subject: true } },
+        exam_schedules: { include: { sessions: true } },
+        exam_subjects: { include: { subjects: true } },
       },
     });
 
@@ -97,7 +97,7 @@ export async function DELETE(
     const schoolId = parseInt(session.user.schoolId);
     
     // Verify exam belongs to school
-    const existing = await prisma.exam.findFirst({
+    const existing = await prisma.exams.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -105,7 +105,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Exam not found' }, { status: 404 });
     }
 
-    await prisma.exam.delete({ where: { id: parseInt(params.id) } });
+    await prisma.exams.delete({ where: { id: parseInt(params.id) } });
 
     return NextResponse.json({ success: true, message: 'Exam deleted successfully' });
   } catch (error) {

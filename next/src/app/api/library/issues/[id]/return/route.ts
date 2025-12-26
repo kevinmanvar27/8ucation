@@ -19,9 +19,9 @@ export async function POST(
     const { returnDate } = body;
 
     // Find the issue
-    const issue = await prisma.bookIssue.findFirst({
-      where: { id: parseInt(params.id), book: { schoolId } },
-      include: { book: true },
+    const issue = await prisma.book_issues.findFirst({
+      where: { id: parseInt(params.id), books: { schoolId } },
+      include: { books: true },
     });
 
     if (!issue) {
@@ -42,18 +42,18 @@ export async function POST(
 
     // Update issue and book availability
     const [updatedIssue] = await prisma.$transaction([
-      prisma.bookIssue.update({
+      prisma.book_issues.update({
         where: { id: parseInt(params.id) },
         data: {
           returnDate: actualReturnDate,
           status: 'returned',
         },
         include: {
-          book: { select: { id: true, title: true, bookNo: true } },
-          member: true,
+          books: { select: { id: true, title: true, bookNo: true } },
+          library_members: true,
         },
       }),
-      prisma.book.update({
+      prisma.books.update({
         where: { id: issue.bookId },
         data: { available: { increment: 1 } },
       }),

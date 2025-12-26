@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
@@ -24,7 +24,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const user = await prisma.user.findFirst({
+    const user = await prisma.users.findFirst({
       where: {
         id: parseInt(params.id),
         schoolId,
@@ -36,16 +36,16 @@ export async function GET(
         isActive: true,
         lastLogin: true,
         createdAt: true,
-        role: {
+        roles: {
           select: { id: true, name: true },
         },
         staff: {
           select: { firstName: true, lastName: true },
         },
-        student: {
+        students: {
           select: { firstName: true, lastName: true },
         },
-        parent: {
+        parents: {
           select: { guardianName: true },
         },
       },
@@ -87,7 +87,7 @@ export async function PUT(
       updateData.password = await bcrypt.hash(data.password, 10);
     }
 
-    const user = await prisma.user.update({
+    const user = await prisma.users.update({
       where: { id: parseInt(params.id) },
       data: updateData,
       select: {
@@ -95,7 +95,7 @@ export async function PUT(
         email: true,
         username: true,
         isActive: true,
-        role: {
+        roles: {
           select: { name: true },
         },
       },
@@ -128,7 +128,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.user.delete({
+    await prisma.users.delete({
       where: { id: parseInt(params.id) },
     });
 

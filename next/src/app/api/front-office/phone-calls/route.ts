@@ -36,13 +36,13 @@ export async function GET(request: NextRequest) {
     }
 
     const [phoneCalls, total] = await Promise.all([
-      prisma.phoneCallLog.findMany({
+      prisma.phone_call_logs.findMany({
         where,
         orderBy: { date: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.phoneCallLog.count({ where }),
+      prisma.phone_call_logs.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Name and call type are required' }, { status: 400 });
     }
 
-    const phoneCall = await prisma.phoneCallLog.create({
+    const phoneCall = await prisma.phone_call_logs.create({
       data: {
         name,
         phone,

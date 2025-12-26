@@ -54,9 +54,21 @@ export async function GET(request: NextRequest) {
     }
 
     const [parents, total] = await Promise.all([
-      prisma.parent.findMany({
+      prisma.parents.findMany({
         where,
-        include: {
+        select: {
+          id: true,
+          fatherName: true,
+          fatherPhone: true,
+          motherName: true,
+          motherPhone: true,
+          guardianName: true,
+          guardianPhone: true,
+          guardianEmail: true,
+          guardianRelation: true,
+          _count: {
+            select: { students: true },
+          },
           students: {
             select: {
               id: true,
@@ -65,16 +77,14 @@ export async function GET(request: NextRequest) {
               admissionNo: true,
               isActive: true,
             },
-          },
-          _count: {
-            select: { students: true },
+            take: 5, // Limit students per parent for performance
           },
         },
         orderBy: { guardianName: 'asc' },
         skip,
         take: limit,
       }),
-      prisma.parent.count({ where }),
+      prisma.parents.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -114,7 +124,7 @@ export async function POST(request: NextRequest) {
     const schoolId = Number(session.user.schoolId);
     
     // Check for duplicate guardian phone in the same school
-    const existing = await prisma.parent.findFirst({
+    const existing = await prisma.parents.findFirst({
       where: {
         schoolId,
         guardianPhone: validation.data.guardianPhone,
@@ -128,7 +138,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const parent = await prisma.parent.create({
+    const parent = await prisma.parents.create({
       data: {
         schoolId,
         ...validation.data,

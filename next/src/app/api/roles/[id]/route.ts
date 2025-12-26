@@ -23,7 +23,7 @@ export async function GET(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const role = await prisma.role.findFirst({
+    const role = await prisma.roles.findFirst({
       where: {
         id: parseInt(params.id),
         schoolId,
@@ -61,7 +61,7 @@ export async function PUT(
     const data = await request.json();
 
     // Check if role is system role
-    const existingRole = await prisma.role.findFirst({
+    const existingRole = await prisma.roles.findFirst({
       where: {
         id: parseInt(params.id),
         schoolId,
@@ -75,11 +75,11 @@ export async function PUT(
       );
     }
 
-    const role = await prisma.role.update({
+    const role = await prisma.roles.update({
       where: { id: parseInt(params.id) },
       data: {
         name: data.name,
-        permissions: data.permissions || [],
+        slug: data.name.toLowerCase().replace(/\s+/g, '-'),
       },
     });
 
@@ -103,7 +103,7 @@ export async function DELETE(
     }
 
     // Check if role is system role
-    const existingRole = await prisma.role.findFirst({
+    const existingRole = await prisma.roles.findFirst({
       where: {
         id: parseInt(params.id),
         schoolId,
@@ -129,7 +129,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.role.delete({
+    await prisma.roles.delete({
       where: { id: parseInt(params.id) },
     });
 

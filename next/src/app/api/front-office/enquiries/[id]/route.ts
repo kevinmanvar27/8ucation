@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const data = await request.json();
-    const enquiry = await prisma.enquiry.update({
+    const enquiry = await prisma.enquiries.update({
       where: { id: parseInt(params.id) },
       data: {
         name: data.name,
@@ -28,7 +28,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await prisma.enquiry.delete({
+    await prisma.enquiries.delete({
       where: { id: parseInt(params.id) },
     });
     return NextResponse.json({ success: true });

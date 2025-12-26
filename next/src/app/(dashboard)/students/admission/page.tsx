@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { DateInput } from '@/components/ui/date-input';
 import { SimpleSelect } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { ArrowLeft, Save, User, Users, MapPin, GraduationCap, Bus, Home } from 'lucide-react';
@@ -91,6 +92,7 @@ export default function StudentAdmissionPage() {
     handleSubmit,
     watch,
     setValue,
+    control,
     formState: { errors },
   } = useForm<AdmissionFormData>({
     resolver: zodResolver(admissionSchema),
@@ -198,10 +200,9 @@ export default function StudentAdmissionPage() {
     ? routes.find(r => r.id === selectedRouteId)?.pickupPoints || []
     : [];
 
-  // Update loaded tabs when switching
+  // Update active tab when switching
   const handleTabChange = (tabId: string) => {
     setActiveTab(tabId);
-    setLoadedData(prev => ({ ...prev, [tabId]: true }));
   };  const onSubmit = async (data: AdmissionFormData) => {
     try {
       setLoading(true);
@@ -318,7 +319,8 @@ export default function StudentAdmissionPage() {
           ))}
         </div>
         {/* Basic Info Tab */}
-        {activeTab === 'basic' && loadedData.basic && (          <Card>
+        {activeTab === 'basic' && (
+          <Card>
             <CardHeader>
               <CardTitle>Basic Information</CardTitle>
             </CardHeader>
@@ -350,16 +352,32 @@ export default function StudentAdmissionPage() {
                     { value: 'Other', label: 'Other' },
                   ]}
                 />
-                <Input
-                  label="Date of Birth *"
-                  type="date"
-                  {...register('dateOfBirth')}
-                  error={errors.dateOfBirth?.message}
+                <Controller
+                  name="dateOfBirth"
+                  control={control}
+                  render={({ field }) => (
+                    <DateInput
+                      label="Date of Birth *"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                      error={errors.dateOfBirth?.message}
+                    />
+                  )}
                 />
-                <Input
-                  label="Admission Date"
-                  type="date"
-                  {...register('admissionDate')}
+                <Controller
+                  name="admissionDate"
+                  control={control}
+                  render={({ field }) => (
+                    <DateInput
+                      label="Admission Date"
+                      value={field.value}
+                      onChange={field.onChange}
+                      onBlur={field.onBlur}
+                      name={field.name}
+                    />
+                  )}
                 />
                 <Input
                   label="Email"
@@ -424,7 +442,8 @@ export default function StudentAdmissionPage() {
         )}
 
         {/* Parent/Guardian Tab */}
-        {activeTab === 'parent' && loadedData.parent && (          <Card>
+        {activeTab === 'parent' && (
+          <Card>
             <CardHeader>
               <CardTitle>Parent/Guardian Information</CardTitle>
             </CardHeader>
@@ -469,7 +488,8 @@ export default function StudentAdmissionPage() {
         )}
 
         {/* Address Tab */}
-        {activeTab === 'address' && loadedData.address && (          <Card>
+        {activeTab === 'address' && (
+          <Card>
             <CardHeader>
               <CardTitle>Address Information</CardTitle>
             </CardHeader>

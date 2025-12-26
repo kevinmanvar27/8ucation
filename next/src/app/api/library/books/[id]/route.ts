@@ -15,13 +15,13 @@ export async function GET(
     }
 
     const schoolId = parseInt(session.user.schoolId);
-    const book = await prisma.book.findFirst({
+    const book = await prisma.books.findFirst({
       where: { id: parseInt(params.id), schoolId },
       include: {
-        bookIssues: {
+        book_issues: {
           where: { returnDate: null },
           include: {
-            member: { select: { id: true, memberType: true, libraryCardNo: true } },
+            library_members: { select: { id: true, memberType: true, libraryCardNo: true } },
           },
         },
       },
@@ -52,7 +52,7 @@ export async function PUT(
     const schoolId = parseInt(session.user.schoolId);
     const body = await request.json();
 
-    const existing = await prisma.book.findFirst({
+    const existing = await prisma.books.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -64,7 +64,7 @@ export async function PUT(
     const qtyDiff = body.quantity ? parseInt(body.quantity) - existing.quantity : 0;
     const newAvailable = existing.available + qtyDiff;
 
-    const book = await prisma.book.update({
+    const book = await prisma.books.update({
       where: { id: parseInt(params.id) },
       data: {
         title: body.title,
@@ -102,7 +102,7 @@ export async function DELETE(
 
     const schoolId = parseInt(session.user.schoolId);
     
-    const existing = await prisma.book.findFirst({
+    const existing = await prisma.books.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -111,7 +111,7 @@ export async function DELETE(
     }
 
     // Check if book has unreturned issues
-    const unreturnedIssues = await prisma.bookIssue.count({
+    const unreturnedIssues = await prisma.book_issues.count({
       where: { bookId: parseInt(params.id), returnDate: null },
     });
 
@@ -122,7 +122,7 @@ export async function DELETE(
       }, { status: 400 });
     }
 
-    await prisma.book.delete({ where: { id: parseInt(params.id) } });
+    await prisma.books.delete({ where: { id: parseInt(params.id) } });
 
     return NextResponse.json({ success: true, message: 'Book deleted successfully' });
   } catch (error) {

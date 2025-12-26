@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
     if (examSubjectId) {
       where.examSubjectId = parseInt(examSubjectId);
     } else if (examId) {
-      where.examSubject = { examId: parseInt(examId) };
+      where.exam_subjects = { examId: parseInt(examId) };
     }
 
     if (studentId) {
@@ -31,33 +31,33 @@ export async function GET(request: NextRequest) {
     }
 
     if (classSectionId) {
-      where.studentSession = { classSectionId: parseInt(classSectionId) };
+      where.student_sessions = { classSectionId: parseInt(classSectionId) };
     }
 
     // Ensure results are from the same school
-    where.student = { schoolId };
+    where.students = { schoolId };
 
-    const results = await prisma.examResult.findMany({
+    const results = await prisma.exam_results.findMany({
       where,
       include: {
-        examSubject: {
+        exam_subjects: {
           include: {
-            exam: true,
-            subject: true,
+            exams: true,
+            subjects: true,
           },
         },
-        student: {
+        students: {
           select: { id: true, admissionNo: true, firstName: true, lastName: true, image: true },
         },
-        studentSession: {
+        student_sessions: {
           include: {
-            classSection: {
-              include: { class: true, section: true },
+            class_sections: {
+              include: { classes: true, sections: true },
             },
           },
         },
       },
-      orderBy: { student: { firstName: 'asc' } },
+      orderBy: { students: { firstName: 'asc' } },
     });
 
     return NextResponse.json({ success: true, data: results });
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     // Upsert results
     const savedResults = await Promise.all(
       results.map(async (r: any) => {
-        return prisma.examResult.upsert({
+        return prisma.exam_results.upsert({
           where: {
             examSubjectId_studentSessionId: {
               examSubjectId: parseInt(examSubjectId),

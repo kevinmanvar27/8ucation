@@ -1,88 +1,144 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
+import prisma from '@/lib/db';
 
-export async function GET(req: Request) {
+// GET - List all homework for the school
+export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions);
-    
     if (!session?.user?.schoolId) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Mock data for now
-    const homework = [
-      {
-        id: '1',
-        title: 'Math Homework',
-        description: 'Complete exercises 1-10 on page 25',
-        classId: '1',
-        sectionId: '1',
-        subjectId: '1',
-        dueDate: '2025-12-30',
-        createdBy: '1',
-        createdAt: '2025-12-01',
-        class: {
-          name: 'Class 1',
-        },
-        section: {
-          name: 'Section A',
-        },
-        subject: {
-          name: 'Mathematics',
-        },
-        creator: {
-          name: 'John Teacher',
-        },
-      },
-      {
-        id: '2',
-        title: 'Science Project',
-        description: 'Prepare a presentation on solar system',
-        classId: '2',
-        sectionId: '1',
-        subjectId: '2',
-        dueDate: '2025-12-25',
-        createdBy: '2',
-        createdAt: '2025-12-05',
-        class: {
-          name: 'Class 2',
-        },
-        section: {
-          name: 'Section A',
-        },
-        subject: {
-          name: 'Science',
-        },
-        creator: {
-          name: 'Jane Teacher',
-        },
-      },
-    ];
-
-    const { searchParams } = new URL(req.url);
+    const schoolId = parseInt(session.user.schoolId);
+    const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
+    const search = searchParams.get('search') || '';
+    const classId = searchParams.get('classId');
+    const classSectionId = searchParams.get('classSectionId');
+    const subjectId = searchParams.get('subjectId');
 
-    // Simple pagination
-    const startIndex = (page - 1) * limit;
-    const endIndex = startIndex + limit;
-    const paginatedHomework = homework.slice(startIndex, endIndex);
+    const where: any = { schoolId };
+
+    if (search) {
+      where.title = { contains: search };
+    }
+
+    if (classId) {
+      where.classId = parseInt(classId);
+    }
+
+    if (classSectionId) {
+      where.classSectionId = parseInt(classSectionId);
+    }
+
+    if (subjectId) {
+      where.subjectId = parseInt(subjectId);
+    }
+
+    const [homeworks, total] = await Promise.all([
+      prisma.homeworks.findMany({
+        where,
+        include: {
+          classes: {
+            select: { id: true, className: true },
+          },
+          class_sections: {
+            include: {
+              sections: { select: { id: true, sectionName: true } },
+            },
+          },
+          subjects: {
+            select: { id: true, name: true },
+          },
+          staff: {
+            select: { id: true, firstName: true, lastName: true },
+          },
+          homework_submissions: {
+            select: {
+              id: true,
+              studentId: true,
+              status: true,
+              marks: true,
+              submittedAt: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.homeworks.count({ where }),
+    ]);
 
     return NextResponse.json({
       success: true,
-      data: paginatedHomework,
-      pagination: {
-        currentPage: page,
-        totalPages: Math.ceil(homework.length / limit),
-        total: homework.length,
-      },
+      data: homeworks,
+      pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
     });
   } catch (error) {
     console.error('Error fetching homework:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch homework' },
-      { status: 500 }
-    );
+    return NextResponse.json({ success: false, error: 'Failed to fetch homework' }, { status: 500 });
+  }
+}
+
+// POST - Create new homework
+export async function POST(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions);
+    if (!session?.user?.schoolId) {
+      return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const schoolId = parseInt(session.user.schoolId);
+    const body = await request.json();
+    const {
+      classId,
+      classSectionId,
+      subjectId,
+      staffId,
+      title,
+      description,
+      homeworkDate,
+      submissionDate,
+      document,
+    } = body;
+
+    if (!classId || !classSectionId || !subjectId || !title || !homeworkDate || !submissionDate) {
+      return NextResponse.json({
+        success: false,
+        error: 'Class, section, subject, title, homework date, and submission date are required',
+      }, { status: 400 });
+    }
+
+    const homework = await prisma.homeworks.create({
+      data: {
+        schoolId,
+        classId: parseInt(classId),
+        classSectionId: parseInt(classSectionId),
+        subjectId: parseInt(subjectId),
+        staffId: staffId ? parseInt(staffId) : parseInt(session.user.id),
+        title,
+        description,
+        homeworkDate: new Date(homeworkDate),
+        submissionDate: new Date(submissionDate),
+        document,
+      },
+      include: {
+        classes: { select: { id: true, className: true } },
+        class_sections: {
+          include: { sections: { select: { id: true, sectionName: true } } },
+        },
+        subjects: { select: { id: true, name: true } },
+        staff: { select: { id: true, firstName: true, lastName: true } },
+      },
+    });
+
+    return NextResponse.json({ success: true, data: homework }, { status: 201 });
+  } catch (error) {
+    console.error('Error creating homework:', error);
+    return NextResponse.json({ success: false, error: 'Failed to create homework' }, { status: 500 });
   }
 }

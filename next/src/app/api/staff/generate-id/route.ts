@@ -18,7 +18,7 @@ export async function GET() {
     const schoolId = Number(session.user.schoolId);
 
     // Get school code for prefix
-    const school = await prisma.school.findUnique({
+    const school = await prisma.schools.findUnique({
       where: { id: schoolId },
       select: { code: true, name: true },
     });

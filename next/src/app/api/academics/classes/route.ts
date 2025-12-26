@@ -18,15 +18,15 @@ export async function GET(request: NextRequest) {
 
     // Fetch classes with or without sections
     if (withSections) {
-      const classes = await prisma.class.findMany({
+      const classes = await prisma.classes.findMany({
         where: { schoolId },
         orderBy: { sortOrder: 'asc' },
         include: {
-          classSections: {
+          class_sections: {
             include: {
-              section: true,
+              sections: true,
             },
-            orderBy: { section: { sectionName: 'asc' } },
+            orderBy: { sections: { sectionName: 'asc' } },
           },
         },
       });
@@ -36,16 +36,16 @@ export async function GET(request: NextRequest) {
         name: c.className,
         orderNo: c.sortOrder,
         isActive: c.isActive,
-        sections: c.classSections.map(cs => ({
-          id: cs.section.id,
-          name: cs.section.sectionName,
+        sections: c.class_sections.map(cs => ({
+          id: cs.sections.id,
+          name: cs.sections.sectionName,
         })),
       }));
 
       return NextResponse.json({ success: true, data });
     }
 
-    const classes = await prisma.class.findMany({
+    const classes = await prisma.classes.findMany({
       where: { schoolId },
       orderBy: { sortOrder: 'asc' },
     });
@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createClassSchema.parse(body);
 
     // Check if class name already exists
-    const existing = await prisma.class.findFirst({
+    const existing = await prisma.classes.findFirst({
       where: {
         schoolId,
         className: validatedData.name,
@@ -101,13 +101,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Get max order number
-    const maxOrder = await prisma.class.aggregate({
+    const maxOrder = await prisma.classes.aggregate({
       where: { schoolId },
       _max: { sortOrder: true },
     });
 
     const newClass = await prisma.$transaction(async (tx) => {
-      const created = await tx.class.create({
+      const created = await tx.classes.create({
         data: {
           schoolId,
           className: validatedData.name,
@@ -118,9 +118,8 @@ export async function POST(request: NextRequest) {
 
       // Assign sections if provided
       if (validatedData.sectionIds?.length) {
-        await tx.classSection.createMany({
+        await tx.class_sections.createMany({
           data: validatedData.sectionIds.map(sectionId => ({
-            schoolId,
             classId: created.id,
             sectionId,
           })),

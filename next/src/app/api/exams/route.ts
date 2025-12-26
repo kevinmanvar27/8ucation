@@ -25,22 +25,22 @@ export async function GET(request: NextRequest) {
     }
 
     const [exams, total] = await Promise.all([
-      prisma.exam.findMany({
+      prisma.exams.findMany({
         where,
         include: {
-          examSchedules: {
+          exam_schedules: {
             where: sessionId ? { sessionId: parseInt(sessionId) } : undefined,
-            include: { session: true },
+            include: { sessions: true },
           },
-          examSubjects: {
-            include: { subject: true },
+          exam_subjects: {
+            include: { subjects: true },
           },
         },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.exam.count({ where }),
+      prisma.exams.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -70,15 +70,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Exam name is required' }, { status: 400 });
     }
 
-    const exam = await prisma.exam.create({
+    const exam = await prisma.exams.create({
       data: {
         schoolId,
         name,
         description,
-        examSchedules: sessionId ? {
+        exam_schedules: sessionId ? {
           create: { sessionId: parseInt(sessionId) },
         } : undefined,
-        examSubjects: subjects?.length ? {
+        exam_subjects: subjects?.length ? {
           create: subjects.map((s: any) => ({
             subjectId: parseInt(s.subjectId),
             examDate: s.examDate ? new Date(s.examDate) : null,
@@ -91,8 +91,8 @@ export async function POST(request: NextRequest) {
         } : undefined,
       },
       include: {
-        examSchedules: { include: { session: true } },
-        examSubjects: { include: { subject: true } },
+        exam_schedules: { include: { sessions: true } },
+        exam_subjects: { include: { subjects: true } },
       },
     });
 

@@ -20,63 +20,97 @@ export const metadata: Metadata = {
 };
 
 async function getDashboardStats(schoolId: number) {
-  const [
-    totalStudents,
-    totalStaff,
-    totalParents,
-    activeClasses,
-    todayAttendance,
-    pendingFees,
-    recentAdmissions,
-    upcomingEvents,
-  ] = await Promise.all([
-    prisma.student.count({ where: { schoolId } }),
-    prisma.staff.count({ where: { schoolId, isActive: true } }),
-    prisma.parent.count({ where: { schoolId } }),
-    prisma.class.count({ where: { schoolId, isActive: true } }),
-    prisma.studentAttendance.count({
-      where: {
-        student: { schoolId },
-        date: new Date(),
-        status: 'Present',
-      },
-    }),
-    // Get pending fees through FeePayment or simplified count
-    prisma.feePayment.aggregate({
-      where: {
-        student: { schoolId },
-      },
-      _sum: { amount: true },
-    }),
-    prisma.student.count({
-      where: {
-        schoolId,
-        createdAt: {
-          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+  try {
+    const [
+      totalStudents,
+      totalStaff,
+      totalParents,
+      activeClasses,
+      recentAdmissions,
+      upcomingEvents,
+    ] = await Promise.all([
+      prisma.students.count({ where: { schoolId } }),
+      prisma.staff.count({ where: { schoolId, isActive: true } }),
+      prisma.parents.count({ where: { schoolId } }),
+      prisma.classes.count({ where: { schoolId, isActive: true } }),
+      prisma.students.count({
+        where: {
+          schoolId,
+          createdAt: {
+            gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+          },
         },
-      },
-    }),
-    prisma.event.count({
-      where: {
-        schoolId,
-        startDate: {
-          gte: new Date(),
-          lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+      }),
+      prisma.events.count({
+        where: {
+          schoolId,
+          startDate: {
+            gte: new Date(),
+            lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          },
         },
-      },
-    }),
-  ]);
+      }),
+    ]);
 
-  return {
-    totalStudents,
-    totalStaff,
-    totalParents,
-    activeClasses,
-    todayAttendance,
-    pendingFees: pendingFees._sum.amount || 0,
-    recentAdmissions,
-    upcomingEvents,
-  };
+    // Get today's attendance count - using correct relation path
+    let todayAttendance = 0;
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      
+      todayAttendance = await prisma.student_attendances.count({
+        where: {
+          date: {
+            gte: today,
+            lt: tomorrow,
+          },
+          status: 'Present',
+          students: { schoolId },
+        },
+      });
+    } catch (e) {
+      console.error('Error fetching attendance:', e);
+    }
+
+    // Get pending fees - simplified query
+    let pendingFees = 0;
+    try {
+      const feeResult = await prisma.fee_payments.aggregate({
+        where: {
+          students: { schoolId },
+        },
+        _sum: { amount: true },
+      });
+      pendingFees = Number(feeResult._sum.amount) || 0;
+    } catch (e) {
+      console.error('Error fetching fees:', e);
+    }
+
+    return {
+      totalStudents,
+      totalStaff,
+      totalParents,
+      activeClasses,
+      todayAttendance,
+      pendingFees,
+      recentAdmissions,
+      upcomingEvents,
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard stats:', error);
+    return {
+      totalStudents: 0,
+      totalStaff: 0,
+      totalParents: 0,
+      activeClasses: 0,
+      todayAttendance: 0,
+      pendingFees: 0,
+      recentAdmissions: 0,
+      upcomingEvents: 0,
+    };
+  }
 }
 
 export default async function DashboardPage() {
@@ -141,12 +175,12 @@ export default async function DashboardPage() {
       changeType: 'neutral' as const,
     },
     {
-      title: 'Pending Fees',
+      title: 'Fee Collection',
       value: `$${stats.pendingFees.toLocaleString()}`,
       icon: DollarSign,
       change: null,
-      changeLabel: 'to collect',
-      changeType: 'decrease' as const,
+      changeLabel: 'collected',
+      changeType: 'neutral' as const,
     },
     {
       title: 'New Admissions',

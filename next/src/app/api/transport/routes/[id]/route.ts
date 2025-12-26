@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
 
@@ -15,14 +15,16 @@ export async function GET(
     }
 
     const schoolId = parseInt(session.user.schoolId);
-    const route = await prisma.transportRoute.findFirst({
+    const route = await prisma.transport_routes.findFirst({
       where: { id: parseInt(params.id), schoolId },
       include: {
-        vehicleRoutes: {
-          include: { vehicle: true }
+        // Fixed: vehicleRoutes -> vehicle_routes, vehicle -> vehicles
+        vehicle_routes: {
+          include: { vehicles: true }
         },
-        routePickupPoints: {
-          include: { pickupPoint: true },
+        // Fixed: routePickupPoints -> route_pickup_points, pickupPoint -> pickup_points
+        route_pickup_points: {
+          include: { pickup_points: true },
           orderBy: { pickupTime: 'asc' }
         },
       },
@@ -54,7 +56,7 @@ export async function PUT(
     const body = await request.json();
     const { title, fare, isActive, vehicleId, pickupPoints } = body;
 
-    const existing = await prisma.transportRoute.findFirst({
+    const existing = await prisma.transport_routes.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -64,8 +66,8 @@ export async function PUT(
 
     // Update route and handle pickup points
     const route = await prisma.$transaction(async (tx) => {
-      // Update the route
-      const updatedRoute = await tx.transportRoute.update({
+      // Fixed: tx.transportRoute -> tx.transport_routes
+      const updatedRoute = await tx.transport_routes.update({
         where: { id: parseInt(params.id) },
         data: {
           title,
@@ -76,14 +78,15 @@ export async function PUT(
 
       // Handle vehicle association if provided
       if (vehicleId !== undefined) {
-        // Remove existing vehicle associations
-        await tx.vehicleRoute.deleteMany({
+        // Fixed: tx.vehicleRoute -> tx.vehicle_routes
+        await tx.vehicle_routes.deleteMany({
           where: { routeId: parseInt(params.id) },
         });
 
         // Create new association if vehicleId provided
         if (vehicleId) {
-          await tx.vehicleRoute.create({
+          // Fixed: tx.vehicleRoute -> tx.vehicle_routes
+          await tx.vehicle_routes.create({
             data: {
               vehicleId: parseInt(vehicleId),
               routeId: parseInt(params.id),
@@ -94,19 +97,21 @@ export async function PUT(
 
       // Handle pickup points if provided
       if (pickupPoints) {
-        // Delete existing route-pickup associations
-        await tx.routePickupPoint.deleteMany({
+        // Fixed: tx.routePickupPoint -> tx.route_pickup_points
+        await tx.route_pickup_points.deleteMany({
           where: { routeId: parseInt(params.id) },
         });
 
         // Create new pickup points and associations
         for (const pp of pickupPoints) {
-          let pickupPoint = await tx.pickupPoint.findFirst({
+          // Fixed: tx.pickupPoint -> tx.pickup_points
+          let pickupPoint = await tx.pickup_points.findFirst({
             where: { name: pp.name }
           });
           
           if (!pickupPoint) {
-            pickupPoint = await tx.pickupPoint.create({
+            // Fixed: tx.pickupPoint -> tx.pickup_points
+            pickupPoint = await tx.pickup_points.create({
               data: {
                 name: pp.name,
                 address: pp.address,
@@ -114,7 +119,8 @@ export async function PUT(
             });
           }
 
-          await tx.routePickupPoint.create({
+          // Fixed: tx.routePickupPoint -> tx.route_pickup_points
+          await tx.route_pickup_points.create({
             data: {
               routeId: parseInt(params.id),
               pickupPointId: pickupPoint.id,
@@ -128,14 +134,16 @@ export async function PUT(
     });
 
     // Fetch updated route with relations
-    const fullRoute = await prisma.transportRoute.findFirst({
+    const fullRoute = await prisma.transport_routes.findFirst({
       where: { id: parseInt(params.id) },
       include: {
-        vehicleRoutes: {
-          include: { vehicle: true }
+        // Fixed: vehicleRoutes -> vehicle_routes, vehicle -> vehicles
+        vehicle_routes: {
+          include: { vehicles: true }
         },
-        routePickupPoints: {
-          include: { pickupPoint: true },
+        // Fixed: routePickupPoints -> route_pickup_points, pickupPoint -> pickup_points
+        route_pickup_points: {
+          include: { pickup_points: true },
           orderBy: { pickupTime: 'asc' }
         },
       },
@@ -161,7 +169,7 @@ export async function DELETE(
 
     const schoolId = parseInt(session.user.schoolId);
     
-    const existing = await prisma.transportRoute.findFirst({
+    const existing = await prisma.transport_routes.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -169,7 +177,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Route not found' }, { status: 404 });
     }
 
-    await prisma.transportRoute.delete({ where: { id: parseInt(params.id) } });
+    await prisma.transport_routes.delete({ where: { id: parseInt(params.id) } });
 
     return NextResponse.json({ success: true, message: 'Route deleted successfully' });
   } catch (error) {

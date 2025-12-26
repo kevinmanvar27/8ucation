@@ -38,7 +38,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get the current session
-    const currentSession = await prisma.session.findFirst({
+    const currentSession = await prisma.sessions.findFirst({
       where: {
         schoolId,
         isActive: true,
@@ -53,11 +53,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Get class section
-    const classSection = await prisma.classSection.findFirst({
+    const classSection = await prisma.class_sections.findFirst({
       where: {
         classId: parseInt(classId, 10),
         sectionId: parseInt(sectionId, 10),
-        class: { schoolId },
+        classes: { schoolId },
       },
     });
 
@@ -69,16 +69,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Get all students in this class/section for the current session
-    const studentSessions = await prisma.studentSession.findMany({
+    const studentSessions = await prisma.student_sessions.findMany({
       where: {
         sessionId: currentSession.id,
         classSectionId: classSection.id,
-        student: {
+        students: {
           isActive: true,
         },
       },
       include: {
-        student: {
+        students: {
           select: {
             id: true,
             firstName: true,
@@ -87,7 +87,7 @@ export async function GET(request: NextRequest) {
             image: true,
           },
         },
-        attendances: {
+        student_attendances: {
           where: {
             date: new Date(date),
           },
@@ -101,13 +101,13 @@ export async function GET(request: NextRequest) {
     // Format response
     const students = studentSessions.map((ss) => ({
       studentSessionId: ss.id,
-      studentId: ss.student.id,
+      studentId: ss.students.id,
       rollNo: ss.rollNo,
-      firstName: ss.student.firstName,
-      lastName: ss.student.lastName,
-      admissionNo: ss.student.admissionNo,
-      image: ss.student.image,
-      attendance: ss.attendances[0] || null,
+      firstName: ss.students.firstName,
+      lastName: ss.students.lastName,
+      admissionNo: ss.students.admissionNo,
+      image: ss.students.image,
+      attendance: ss.student_attendances[0] || null,
     }));
 
     return NextResponse.json({
@@ -149,7 +149,7 @@ export async function POST(request: NextRequest) {
     // Upsert each attendance record
     const results = await Promise.all(
       attendances.map(async (att) => {
-        return prisma.studentAttendance.upsert({
+        return prisma.student_attendances.upsert({
           where: {
             studentSessionId_date: {
               studentSessionId: att.studentSessionId,

@@ -15,10 +15,10 @@ export async function GET(
     }
 
     const schoolId = parseInt(session.user.schoolId);
-    const feeGroup = await prisma.feeGroup.findFirst({
+    const feeGroup = await prisma.fee_groups.findFirst({
       where: { id: parseInt(params.id), schoolId },
       include: {
-        feeGroupTypes: { include: { feeType: true } },
+        fee_group_types: { include: { fee_types: true } },
       },
     });
 
@@ -48,7 +48,7 @@ export async function PUT(
     const body = await request.json();
     const { name, description, feeTypes, isActive } = body;
 
-    const existing = await prisma.feeGroup.findFirst({
+    const existing = await prisma.fee_groups.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -57,17 +57,17 @@ export async function PUT(
     }
 
     // Delete existing fee types and recreate
-    await prisma.feeGroupType.deleteMany({
+    await prisma.fee_group_types.deleteMany({
       where: { feeGroupId: parseInt(params.id) },
     });
 
-    const feeGroup = await prisma.feeGroup.update({
+    const feeGroup = await prisma.fee_groups.update({
       where: { id: parseInt(params.id) },
       data: {
         name,
         description,
         isActive,
-        feeGroupTypes: feeTypes?.length ? {
+        fee_group_types: feeTypes?.length ? {
           create: feeTypes.map((ft: any) => ({
             feeTypeId: parseInt(ft.feeTypeId),
             amount: parseFloat(ft.amount),
@@ -79,7 +79,7 @@ export async function PUT(
         } : undefined,
       },
       include: {
-        feeGroupTypes: { include: { feeType: true } },
+        fee_group_types: { include: { fee_types: true } },
       },
     });
 
@@ -103,7 +103,7 @@ export async function DELETE(
 
     const schoolId = parseInt(session.user.schoolId);
     
-    const existing = await prisma.feeGroup.findFirst({
+    const existing = await prisma.fee_groups.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -111,7 +111,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Fee group not found' }, { status: 404 });
     }
 
-    await prisma.feeGroup.delete({ where: { id: parseInt(params.id) } });
+    await prisma.fee_groups.delete({ where: { id: parseInt(params.id) } });
 
     return NextResponse.json({ success: true, message: 'Fee group deleted successfully' });
   } catch (error) {

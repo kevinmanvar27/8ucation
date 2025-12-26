@@ -20,11 +20,11 @@ export async function GET(request: NextRequest) {
       where.name = { contains: search };
     }
 
-    const feeGroups = await prisma.feeGroup.findMany({
+    const feeGroups = await prisma.fee_groups.findMany({
       where,
       include: {
-        feeGroupTypes: {
-          include: { feeType: true },
+        fee_group_types: {
+          include: { fee_types: true },
         },
       },
       orderBy: { name: 'asc' },
@@ -53,13 +53,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Fee group name is required' }, { status: 400 });
     }
 
-    const feeGroup = await prisma.feeGroup.create({
+    const feeGroup = await prisma.fee_groups.create({
       data: {
         schoolId,
         name,
         description,
         isActive: isActive ?? true,
-        feeGroupTypes: feeTypes?.length ? {
+        fee_group_types: feeTypes?.length ? {
           create: feeTypes.map((ft: any) => ({
             feeTypeId: parseInt(ft.feeTypeId),
             amount: parseFloat(ft.amount),
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
         } : undefined,
       },
       include: {
-        feeGroupTypes: { include: { feeType: true } },
+        fee_group_types: { include: { fee_types: true } },
       },
     });
 

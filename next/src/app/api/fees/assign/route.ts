@@ -18,26 +18,26 @@ export async function GET(request: NextRequest) {
     const feeGroupId = searchParams.get('feeGroupId');
 
     const where: any = { 
-      feeGroup: { schoolId },
-      class: { schoolId }
+      fee_groups: { schoolId },
+      classes: { schoolId }
     };
     if (classId) where.classId = parseInt(classId);
     if (sessionId) where.sessionId = parseInt(sessionId);
     if (feeGroupId) where.feeGroupId = parseInt(feeGroupId);
 
-    const feesMasters = await prisma.feesMaster.findMany({
+    const feesMasters = await prisma.fees_masters.findMany({
       where,
       include: {
-        feeGroup: {
-          include: { feeGroupTypes: { include: { feeType: true } } },
+        fee_groups: {
+          include: { fee_group_types: { include: { fee_types: true } } },
         },
-        class: true,
-        session: true,
-        studentFeesMasters: {
+        classes: true,
+        sessions: true,
+        student_fees_masters: {
           include: {
-            studentSession: {
+            student_sessions: {
               include: {
-                student: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
+                students: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
               },
             },
           },
@@ -72,7 +72,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify fee group belongs to school
-    const feeGroup = await prisma.feeGroup.findFirst({
+    const feeGroup = await prisma.fee_groups.findFirst({
       where: { id: parseInt(feeGroupId), schoolId },
     });
 
@@ -81,7 +81,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify class belongs to school
-    const classRecord = await prisma.class.findFirst({
+    const classRecord = await prisma.classes.findFirst({
       where: { id: parseInt(classId), schoolId },
     });
 
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create or get FeesMaster
-    const feesMaster = await prisma.feesMaster.upsert({
+    const feesMaster = await prisma.fees_masters.upsert({
       where: {
         sessionId_feeGroupId_classId: {
           sessionId: parseInt(sessionId),
@@ -109,13 +109,13 @@ export async function POST(request: NextRequest) {
     // Optionally assign to all students in the class for this session
     if (assignToStudents) {
       // Get all student sessions for this class in this session
-      const studentSessions = await prisma.studentSession.findMany({
+      const studentSessions = await prisma.student_sessions.findMany({
         where: {
           sessionId: parseInt(sessionId),
-          classSection: {
+          class_sections: {
             classId: parseInt(classId),
           },
-          student: { schoolId },
+          students: { schoolId },
         },
         select: { id: true },
       });
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
       // Create StudentFeesMaster records for each student
       await Promise.all(
         studentSessions.map(async (ss) => {
-          return prisma.studentFeesMaster.upsert({
+          return prisma.student_fees_masters.upsert({
             where: {
               studentSessionId_feesMasterId: {
                 studentSessionId: ss.id,
@@ -142,19 +142,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the complete record
-    const result = await prisma.feesMaster.findUnique({
+    const result = await prisma.fees_masters.findUnique({
       where: { id: feesMaster.id },
       include: {
-        feeGroup: {
-          include: { feeGroupTypes: { include: { feeType: true } } },
+        fee_groups: {
+          include: { fee_group_types: { include: { fee_types: true } } },
         },
-        class: true,
-        session: true,
-        studentFeesMasters: {
+        classes: true,
+        sessions: true,
+        student_fees_masters: {
           include: {
-            studentSession: {
+            student_sessions: {
               include: {
-                student: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
+                students: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
               },
             },
           },
@@ -188,11 +188,11 @@ export async function DELETE(request: NextRequest) {
 
     if (studentFeesMasterId) {
       // Delete single student assignment
-      const studentFeesMaster = await prisma.studentFeesMaster.findFirst({
+      const studentFeesMaster = await prisma.student_fees_masters.findFirst({
         where: { 
           id: parseInt(studentFeesMasterId),
-          feesMaster: {
-            feeGroup: { schoolId },
+          fees_masters: {
+            fee_groups: { schoolId },
           },
         },
       });
@@ -201,17 +201,17 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Assignment not found' }, { status: 404 });
       }
 
-      await prisma.studentFeesMaster.delete({
+      await prisma.student_fees_masters.delete({
         where: { id: parseInt(studentFeesMasterId) },
       });
 
       return NextResponse.json({ success: true, message: 'Student fee assignment removed' });
     } else if (feesMasterId) {
       // Delete entire class fee assignment (and all student assignments)
-      const feesMaster = await prisma.feesMaster.findFirst({
+      const feesMaster = await prisma.fees_masters.findFirst({
         where: { 
           id: parseInt(feesMasterId),
-          feeGroup: { schoolId },
+          fee_groups: { schoolId },
         },
       });
 
@@ -219,7 +219,7 @@ export async function DELETE(request: NextRequest) {
         return NextResponse.json({ success: false, error: 'Fee master not found' }, { status: 404 });
       }
 
-      await prisma.feesMaster.delete({
+      await prisma.fees_masters.delete({
         where: { id: parseInt(feesMasterId) },
       });
 

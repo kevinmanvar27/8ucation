@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const data = await request.json();
-    const call = await prisma.phoneCallLog.update({
+    const call = await prisma.phone_call_logs.update({
       where: { id: parseInt(params.id) },
       data: {
         callType: data.type,
@@ -26,7 +26,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await prisma.phoneCallLog.delete({
+    await prisma.phone_call_logs.delete({
       where: { id: parseInt(params.id) },
     });
     return NextResponse.json({ success: true });

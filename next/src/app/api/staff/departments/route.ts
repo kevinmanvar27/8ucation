@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     const schoolId = Number(session.user.schoolId);
     
-    const departments = await prisma.department.findMany({
+    const departments = await prisma.departments.findMany({
       where: {
         schoolId,
       },
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     const schoolId = Number(session.user.schoolId);
     
     // Check for duplicate
-    const existing = await prisma.department.findFirst({
+    const existing = await prisma.departments.findFirst({
       where: {
         schoolId,
         name: validation.data.name,
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const department = await prisma.department.create({
+    const department = await prisma.departments.create({
       data: {
         schoolId,
         name: validation.data.name,

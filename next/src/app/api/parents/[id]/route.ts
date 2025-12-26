@@ -40,7 +40,7 @@ export async function GET(
 
     const schoolId = Number(session.user.schoolId);
     
-    const parent = await prisma.parent.findFirst({
+    const parent = await prisma.parents.findFirst({
       where: {
         id,
         schoolId,
@@ -55,7 +55,7 @@ export async function GET(
             isActive: true,
           },
         },
-        user: {
+        users: {
           select: {
             id: true,
             email: true,
@@ -95,7 +95,7 @@ export async function PUT(
     const schoolId = Number(session.user.schoolId);
     
     // Verify parent exists and belongs to school
-    const existing = await prisma.parent.findFirst({
+    const existing = await prisma.parents.findFirst({
       where: {
         id,
         schoolId,
@@ -117,7 +117,7 @@ export async function PUT(
     }
 
     // Check for duplicate guardian phone (excluding current record)
-    const duplicate = await prisma.parent.findFirst({
+    const duplicate = await prisma.parents.findFirst({
       where: {
         schoolId,
         guardianPhone: validation.data.guardianPhone,
@@ -132,7 +132,7 @@ export async function PUT(
       );
     }
 
-    const parent = await prisma.parent.update({
+    const parent = await prisma.parents.update({
       where: { id },
       data: validation.data,
       include: {
@@ -174,7 +174,7 @@ export async function DELETE(
     const schoolId = Number(session.user.schoolId);
     
     // Verify parent exists and belongs to school
-    const parent = await prisma.parent.findFirst({
+    const parent = await prisma.parents.findFirst({
       where: {
         id,
         schoolId,
@@ -197,14 +197,14 @@ export async function DELETE(
     }
 
     // Delete associated user if exists
-    await prisma.user.deleteMany({
+    await prisma.users.deleteMany({
       where: {
         parentId: id,
         schoolId,
       },
     });
 
-    await prisma.parent.delete({ where: { id } });
+    await prisma.parents.delete({ where: { id } });
 
     return NextResponse.json({ success: true, message: 'Parent deleted successfully' });
   } catch (error) {

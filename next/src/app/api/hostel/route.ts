@@ -21,10 +21,10 @@ export async function GET(request: NextRequest) {
     const withRooms = searchParams.get('withRooms') === 'true';
 
     if (withRooms) {
-      const hostels = await prisma.hostel.findMany({
+      const hostels = await prisma.hostels.findMany({
         where: { schoolId, isActive: true },
         include: {
-          rooms: true,
+          hostel_rooms: true,
         },
       });
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
         type: hostel.type,
         address: hostel.address,
         intake: hostel.intake,
-        rooms: hostel.rooms.map(room => ({
+        rooms: hostel.hostel_rooms.map(room => ({
           id: room.id,
           roomNo: room.roomNo,
           noOfBeds: room.noOfBeds,
@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ success: true, data });
     }
 
-    const hostels = await prisma.hostel.findMany({
+    const hostels = await prisma.hostels.findMany({
       where: { schoolId, isActive: true },
     });
 

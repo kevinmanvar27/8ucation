@@ -26,7 +26,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Invalid ID' }, { status: 400 });
     }
     
-    const department = await prisma.department.findFirst({
+    const department = await prisma.departments.findFirst({
       where: {
         id: departmentId,
         schoolId,
@@ -87,7 +87,7 @@ export async function PUT(
     }
 
     // Check if exists
-    const existing = await prisma.department.findFirst({
+    const existing = await prisma.departments.findFirst({
       where: {
         id: departmentId,
         schoolId,
@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Check for duplicate name
-    const duplicate = await prisma.department.findFirst({
+    const duplicate = await prisma.departments.findFirst({
       where: {
         schoolId,
         name: validation.data.name,
@@ -114,7 +114,7 @@ export async function PUT(
       );
     }
 
-    const department = await prisma.department.update({
+    const department = await prisma.departments.update({
       where: { id: departmentId },
       data: validation.data,
       include: {
@@ -151,7 +151,7 @@ export async function DELETE(
     }
 
     // Check if exists
-    const department = await prisma.department.findFirst({
+    const department = await prisma.departments.findFirst({
       where: {
         id: departmentId,
         schoolId,
@@ -177,7 +177,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.department.delete({
+    await prisma.departments.delete({
       where: { id: departmentId },
     });
 

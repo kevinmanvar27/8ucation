@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
 
     const schoolId = Number(session.user.schoolId);
     
-    const sessions = await prisma.session.findMany({
+    const sessions = await prisma.sessions.findMany({
       where: { schoolId },
       orderBy: { createdAt: 'desc' },
     });

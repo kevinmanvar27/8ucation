@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export async function GET() {
   try {
-    const calls = await prisma.phoneCallLog.findMany({
+    const calls = await prisma.phone_call_logs.findMany({
       orderBy: { date: 'desc' },
     });
     return NextResponse.json(calls);
@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const call = await prisma.phoneCallLog.create({
+    const call = await prisma.phone_call_logs.create({
       data: {
         callType: data.type, // 'incoming' or 'outgoing'
         name: data.name,

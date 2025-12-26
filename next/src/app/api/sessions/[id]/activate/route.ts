@@ -24,13 +24,13 @@ export async function POST(
     }
 
     // Deactivate all sessions for this school
-    await prisma.session.updateMany({
+    await prisma.sessions.updateMany({
       where: { schoolId },
       data: { isActive: false },
     });
 
     // Activate the selected session
-    const academicSession = await prisma.session.update({
+    const academicSession = await prisma.sessions.update({
       where: { id: parseInt(params.id) },
       data: { isActive: true },
     });

@@ -85,20 +85,20 @@ export async function GET(request: NextRequest) {
       where.isActive = false;
     }
 
-    const [staff, total] = await Promise.all([
+    const [staffList, total] = await Promise.all([
       prisma.staff.findMany({
         where,
         include: {
-          role: {
+          roles: {
             select: { id: true, name: true },
           },
-          department: {
+          departments: {
             select: { id: true, name: true },
           },
-          designation: {
+          designations: {
             select: { id: true, name: true },
           },
-          user: {
+          users: {
             select: { id: true, username: true },
           },
         },
@@ -108,6 +108,15 @@ export async function GET(request: NextRequest) {
       }),
       prisma.staff.count({ where }),
     ]);
+
+    // Transform data to match expected format
+    const staff = staffList.map((s) => ({
+      ...s,
+      role: s.roles,
+      department: s.departments,
+      designation: s.designations,
+      user: s.users,
+    }));
 
     return NextResponse.json({
       success: true,
@@ -212,16 +221,16 @@ export async function POST(request: NextRequest) {
           note: data.note || null,
         },
         include: {
-          role: true,
-          department: true,
-          designation: true,
+          roles: true,
+          departments: true,
+          designations: true,
         },
       });
 
       // Create user login if requested
       if (data.createLogin && data.password) {
         const hashedPassword = await bcrypt.hash(data.password, 10);
-        await tx.user.create({
+        await tx.users.create({
           data: {
             schoolId,
             username: data.email,

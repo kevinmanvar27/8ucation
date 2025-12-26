@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export async function GET() {
   try {
-    const visitors = await prisma.visitor.findMany({
+    const visitors = await prisma.visitors.findMany({
       orderBy: { date: 'desc' },
     });
     return NextResponse.json(visitors);
@@ -17,7 +17,7 @@ export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
     const now = new Date();
-    const visitor = await prisma.visitor.create({
+    const visitor = await prisma.visitors.create({
       data: {
         schoolId: 1, // Default school ID
         name: data.name,

@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
 
     const schoolId = Number(session.user.schoolId);
 
-    const sections = await prisma.section.findMany({
+    const sections = await prisma.sections.findMany({
       where: { schoolId },
       orderBy: { sectionName: 'asc' },
       include: {
         _count: {
-          select: { classSections: true },
+          select: { class_sections: true },
         },
       },
     });
@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createSectionSchema.parse(body);
 
     // Check if section name already exists
-    const existing = await prisma.section.findFirst({
+    const existing = await prisma.sections.findFirst({
       where: {
         schoolId,
         sectionName: validatedData.name,
@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const section = await prisma.section.create({
+    const section = await prisma.sections.create({
       data: {
         schoolId,
         sectionName: validatedData.name,

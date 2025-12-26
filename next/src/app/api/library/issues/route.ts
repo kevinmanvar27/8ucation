@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '20');
 
-    const where: any = { book: { schoolId } };
+    const where: any = { books: { schoolId } };
     if (memberId) where.memberId = parseInt(memberId);
     if (bookId) where.bookId = parseInt(bookId);
     if (status === 'issued') where.returnDate = null;
@@ -30,25 +30,25 @@ export async function GET(request: NextRequest) {
     }
 
     const [issues, total] = await Promise.all([
-      prisma.bookIssue.findMany({
+      prisma.book_issues.findMany({
         where,
         include: {
-          book: { select: { id: true, title: true, bookNo: true, author: true } },
-          member: { select: { id: true, memberType: true, libraryCardNo: true } },
+          books: { select: { id: true, title: true, bookNo: true, author: true } },
+          library_members: { select: { id: true, memberType: true, libraryCardNo: true } },
         },
         orderBy: { issueDate: 'desc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.bookIssue.count({ where }),
+      prisma.book_issues.count({ where }),
     ]);
 
     // Enrich with member details (student or staff)
     const enrichedIssues = await Promise.all(
       issues.map(async (issue) => {
         let memberDetails = null;
-        if (issue.member.memberType === 'student' && issue.studentId) {
-          memberDetails = await prisma.student.findUnique({
+        if (issue.library_members.memberType === 'student' && issue.studentId) {
+          memberDetails = await prisma.students.findUnique({
             where: { id: issue.studentId },
             select: { id: true, admissionNo: true, firstName: true, lastName: true },
           });
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Check book availability
-    const book = await prisma.book.findFirst({
+    const book = await prisma.books.findFirst({
       where: { id: parseInt(bookId), schoolId },
     });
 
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify member exists
-    const member = await prisma.libraryMember.findUnique({
+    const member = await prisma.library_members.findUnique({
       where: { id: parseInt(memberId) },
     });
 
@@ -108,7 +108,7 @@ export async function POST(request: NextRequest) {
 
     // Create issue and update book availability
     const [issue] = await prisma.$transaction([
-      prisma.bookIssue.create({
+      prisma.book_issues.create({
         data: {
           bookId: parseInt(bookId),
           memberId: parseInt(memberId),
@@ -118,11 +118,11 @@ export async function POST(request: NextRequest) {
           status: 'issued',
         },
         include: {
-          book: { select: { id: true, title: true, bookNo: true } },
-          member: true,
+          books: { select: { id: true, title: true, bookNo: true } },
+          library_members: true,
         },
       }),
-      prisma.book.update({
+      prisma.books.update({
         where: { id: parseInt(bookId) },
         data: { available: { decrement: 1 } },
       }),

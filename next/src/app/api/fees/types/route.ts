@@ -20,7 +20,7 @@ export async function GET(request: NextRequest) {
       where.name = { contains: search };
     }
 
-    const feeTypes = await prisma.feeType.findMany({
+    const feeTypes = await prisma.fee_types.findMany({
       where,
       orderBy: { name: 'asc' },
     });
@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Fee type name is required' }, { status: 400 });
     }
 
-    const feeType = await prisma.feeType.create({
+    const feeType = await prisma.fee_types.create({
       data: { schoolId, name, code, description, isActive: isActive ?? true },
     });
 

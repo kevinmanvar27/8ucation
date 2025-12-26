@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
@@ -21,7 +21,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const users = await prisma.user.findMany({
+    const users = await prisma.users.findMany({
       where: { schoolId },
       select: {
         id: true,
@@ -30,16 +30,16 @@ export async function GET() {
         isActive: true,
         lastLogin: true,
         createdAt: true,
-        role: {
+        roles: {
           select: { name: true },
         },
         staff: {
           select: { firstName: true, lastName: true },
         },
-        student: {
+        students: {
           select: { firstName: true, lastName: true },
         },
-        parent: {
+        parents: {
           select: { guardianName: true },
         },
       },
@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
 
     // Check if email already exists
-    const existingUser = await prisma.user.findFirst({
+    const existingUser = await prisma.users.findFirst({
       where: {
         OR: [
           { email: data.email },
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
     // Hash password
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    const user = await prisma.user.create({
+    const user = await prisma.users.create({
       data: {
         schoolId,
         email: data.email,
@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
         username: true,
         isActive: true,
         createdAt: true,
-        role: {
+        roles: {
           select: { name: true },
         },
       },

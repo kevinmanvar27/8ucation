@@ -58,13 +58,13 @@ export async function GET(request: NextRequest) {
         firstName: true,
         lastName: true,
         image: true,
-        role: {
+        roles: {
           select: { id: true, name: true },
         },
-        department: {
+        departments: {
           select: { id: true, name: true },
         },
-        staffAttendances: {
+        staff_attendances: {
           where: {
             date: new Date(date),
           },
@@ -83,9 +83,9 @@ export async function GET(request: NextRequest) {
       firstName: s.firstName,
       lastName: s.lastName,
       image: s.image,
-      role: s.role,
-      department: s.department,
-      attendance: s.staffAttendances[0] || null,
+      role: s.roles,
+      department: s.departments,
+      attendance: s.staff_attendances[0] || null,
     }));
 
     return NextResponse.json({
@@ -146,7 +146,7 @@ export async function POST(request: NextRequest) {
     // Upsert each attendance record
     const results = await Promise.all(
       attendances.map(async (att) => {
-        return prisma.staffAttendance.upsert({
+        return prisma.staff_attendances.upsert({
           where: {
             staffId_date: {
               staffId: att.staffId,

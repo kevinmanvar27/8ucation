@@ -15,7 +15,7 @@ export async function GET(
     }
 
     const schoolId = parseInt(session.user.schoolId);
-    const feeType = await prisma.feeType.findFirst({
+    const feeType = await prisma.fee_types.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -45,7 +45,7 @@ export async function PUT(
     const body = await request.json();
     const { name, code, description, isActive } = body;
 
-    const existing = await prisma.feeType.findFirst({
+    const existing = await prisma.fee_types.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -53,7 +53,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Fee type not found' }, { status: 404 });
     }
 
-    const feeType = await prisma.feeType.update({
+    const feeType = await prisma.fee_types.update({
       where: { id: parseInt(params.id) },
       data: { name, code, description, isActive },
     });
@@ -78,7 +78,7 @@ export async function DELETE(
 
     const schoolId = parseInt(session.user.schoolId);
     
-    const existing = await prisma.feeType.findFirst({
+    const existing = await prisma.fee_types.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -86,7 +86,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Fee type not found' }, { status: 404 });
     }
 
-    await prisma.feeType.delete({ where: { id: parseInt(params.id) } });
+    await prisma.fee_types.delete({ where: { id: parseInt(params.id) } });
 
     return NextResponse.json({ success: true, message: 'Fee type deleted successfully' });
   } catch (error) {

@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const sessions = await prisma.session.findMany({
+    const sessions = await prisma.sessions.findMany({
       where: { schoolId },
       orderBy: { session: 'desc' },
     });
@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
 
     const data = await request.json();
 
-    const newSession = await prisma.session.create({
+    const newSession = await prisma.sessions.create({
       data: {
         schoolId,
         session: data.session,

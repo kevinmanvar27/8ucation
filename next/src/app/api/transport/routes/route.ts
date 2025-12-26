@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
 
@@ -20,16 +20,16 @@ export async function GET(request: NextRequest) {
       where.title = { contains: search };
     }
 
-    const routes = await prisma.transportRoute.findMany({
+    const routes = await prisma.transport_routes.findMany({
       where,
       include: {
-        vehicleRoutes: {
+        vehicle_routes: {
           include: {
-            vehicle: { select: { id: true, vehicleNo: true, driverName: true } }
+            vehicles: { select: { id: true, vehicleNo: true, driverName: true } }
           }
         },
-        routePickupPoints: {
-          include: { pickupPoint: true },
+        route_pickup_points: {
+          include: { pickup_points: true },
           orderBy: { pickupTime: 'asc' }
         },
       },
@@ -60,7 +60,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Create route
-    const route = await prisma.transportRoute.create({
+    const route = await prisma.transport_routes.create({
       data: {
         schoolId,
         title,
@@ -71,7 +71,7 @@ export async function POST(request: NextRequest) {
 
     // If vehicleId provided, create vehicle-route association
     if (vehicleId) {
-      await prisma.vehicleRoute.create({
+      await prisma.vehicle_routes.create({
         data: {
           vehicleId: parseInt(vehicleId),
           routeId: route.id,
@@ -83,12 +83,12 @@ export async function POST(request: NextRequest) {
     if (pickupPoints?.length) {
       for (const pp of pickupPoints) {
         // First create or find the pickup point
-        let pickupPoint = await prisma.pickupPoint.findFirst({
+        let pickupPoint = await prisma.pickup_points.findFirst({
           where: { name: pp.name }
         });
         
         if (!pickupPoint) {
-          pickupPoint = await prisma.pickupPoint.create({
+          pickupPoint = await prisma.pickup_points.create({
             data: {
               name: pp.name,
               address: pp.address,
@@ -97,7 +97,7 @@ export async function POST(request: NextRequest) {
         }
 
         // Then create the route-pickup association
-        await prisma.routePickupPoint.create({
+        await prisma.route_pickup_points.create({
           data: {
             routeId: route.id,
             pickupPointId: pickupPoint.id,
@@ -108,14 +108,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Fetch the complete route with relations
-    const completeRoute = await prisma.transportRoute.findUnique({
+    const completeRoute = await prisma.transport_routes.findUnique({
       where: { id: route.id },
       include: {
-        vehicleRoutes: {
-          include: { vehicle: true }
+        vehicle_routes: {
+          include: { vehicles: true }
         },
-        routePickupPoints: {
-          include: { pickupPoint: true }
+        route_pickup_points: {
+          include: { pickup_points: true }
         },
       },
     });

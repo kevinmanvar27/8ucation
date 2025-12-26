@@ -29,20 +29,20 @@ export async function GET(
 
     const schoolId = Number(session.user.schoolId);
 
-    const subject = await prisma.subject.findFirst({
+    const subject = await prisma.subjects.findFirst({
       where: {
         id: subjectId,
         schoolId,
       },
       include: {
-        subjectGroupSubjects: {
+        subject_group_subjects: {
           include: {
-            subjectGroup: true,
+            subject_groups: true,
           },
         },
         _count: {
           select: {
-            subjectGroupSubjects: true,
+            subject_group_subjects: true,
           },
         },
       },
@@ -87,7 +87,7 @@ export async function PUT(
     }
 
     // Check if subject exists
-    const existingSubject = await prisma.subject.findFirst({
+    const existingSubject = await prisma.subjects.findFirst({
       where: {
         id: subjectId,
         schoolId,
@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Check for duplicate name
-    const duplicateName = await prisma.subject.findFirst({
+    const duplicateName = await prisma.subjects.findFirst({
       where: {
         schoolId,
         name: validation.data.name,
@@ -116,7 +116,7 @@ export async function PUT(
 
     // Check for duplicate code if provided
     if (validation.data.code) {
-      const duplicateCode = await prisma.subject.findFirst({
+      const duplicateCode = await prisma.subjects.findFirst({
         where: {
           schoolId,
           code: validation.data.code,
@@ -132,13 +132,13 @@ export async function PUT(
       }
     }
 
-    const subject = await prisma.subject.update({
+    const subject = await prisma.subjects.update({
       where: { id: subjectId },
       data: validation.data,
       include: {
         _count: {
           select: {
-            subjectGroupSubjects: true,
+            subject_group_subjects: true,
           },
         },
       },
@@ -170,7 +170,7 @@ export async function DELETE(
     const schoolId = Number(session.user.schoolId);
 
     // Check if subject exists
-    const subject = await prisma.subject.findFirst({
+    const subject = await prisma.subjects.findFirst({
       where: {
         id: subjectId,
         schoolId,
@@ -178,7 +178,7 @@ export async function DELETE(
       include: {
         _count: {
           select: {
-            subjectGroupSubjects: true,
+            subject_group_subjects: true,
           },
         },
       },
@@ -189,7 +189,7 @@ export async function DELETE(
     }
 
     // Check if subject is assigned to any subject groups
-    if (subject._count.subjectGroupSubjects > 0) {
+    if (subject._count.subject_group_subjects > 0) {
       return NextResponse.json(
         { success: false, error: 'Cannot delete subject. It is assigned to subject groups. Remove it from all groups first.' },
         { status: 400 }
@@ -197,7 +197,7 @@ export async function DELETE(
     }
 
     // Delete the subject
-    await prisma.subject.delete({
+    await prisma.subjects.delete({
       where: { id: subjectId },
     });
 

@@ -21,55 +21,55 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Invalid ID' }, { status: 400 });
     }
 
-    const student = await prisma.student.findFirst({
+    const student = await prisma.students.findFirst({
       where: {
         id,
         schoolId,
       },
       include: {
-        parent: true,
-        hostelRoom: {
+        parents: true,
+        hostel_rooms: {
           include: {
-            hostel: true,
-            roomType: true,
+            hostels: true,
+            room_types: true,
           },
         },
-        routePickupPoint: {
+        route_pickup_points: {
           include: {
-            route: true,
+            transport_routes: true,
           },
         },
-        studentSessions: {
+        student_sessions: {
           include: {
-            session: true,
-            classSection: {
+            sessions: true,
+            class_sections: {
               include: {
-                class: true,
-                section: true,
+                classes: true,
+                sections: true,
               },
             },
           },
           orderBy: { createdAt: 'desc' },
         },
-        documents: true,
-        timeline: {
+        student_documents: true,
+        student_timeline: {
           orderBy: { date: 'desc' },
           take: 20,
         },
-        feePayments: {
+        fee_payments: {
           orderBy: { paymentDate: 'desc' },
           take: 20,
         },
-        attendances: {
+        student_attendances: {
           orderBy: { date: 'desc' },
           take: 30,
         },
-        examResults: {
+        exam_results: {
           include: {
-            examSubject: {
+            exam_subjects: {
               include: {
-                exam: true,
-                subject: true,
+                exams: true,
+                subjects: true,
               },
             },
           },
@@ -156,7 +156,7 @@ export async function PUT(
     const validatedData = updateStudentSchema.parse(body);
 
     // Check if student exists
-    const existingStudent = await prisma.student.findFirst({
+    const existingStudent = await prisma.students.findFirst({
       where: {
         id,
         schoolId,
@@ -182,7 +182,7 @@ export async function PUT(
           }
         }
         if (Object.keys(parentUpdateData).length > 0) {
-          await tx.parent.update({
+          await tx.parents.update({
             where: { id: existingStudent.parentId },
             data: parentUpdateData,
           });
@@ -191,7 +191,7 @@ export async function PUT(
         // Create parent if not exists - guardianName and guardianPhone are required
         const parentData = validatedData.parent;
         if (parentData.guardianName && parentData.guardianPhone) {
-          const parent = await tx.parent.create({
+          const parent = await tx.parents.create({
             data: {
               schoolId,
               guardianName: parentData.guardianName,
@@ -216,7 +216,7 @@ export async function PUT(
       const { parent, dob, ...studentData } = validatedData;
 
       // Update student
-      const updatedStudent = await tx.student.update({
+      const updatedStudent = await tx.students.update({
         where: { id },
         data: {
           ...studentData,
@@ -265,7 +265,7 @@ export async function DELETE(
     }
 
     // Check if student exists
-    const existingStudent = await prisma.student.findFirst({
+    const existingStudent = await prisma.students.findFirst({
       where: {
         id,
         schoolId,
@@ -280,7 +280,7 @@ export async function DELETE(
     }
 
     // Delete student (cascading deletes will handle related records)
-    await prisma.student.delete({
+    await prisma.students.delete({
       where: { id },
     });
 

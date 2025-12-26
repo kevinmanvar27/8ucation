@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export async function GET() {
   try {
-    const events = await prisma.event.findMany({
+    const events = await prisma.events.findMany({
       orderBy: { startDate: 'desc' },
     });
     return NextResponse.json(events);
@@ -16,7 +16,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
-    const event = await prisma.event.create({
+    const event = await prisma.events.create({
       data: {
         schoolId: 1, // Default school ID
         title: data.title,

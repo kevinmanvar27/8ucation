@@ -61,25 +61,25 @@ export async function GET(
         schoolId,
       },
       include: {
-        role: true,
-        department: true,
-        designation: true,
-        user: {
+        roles: true,
+        departments: true,
+        designations: true,
+        users: {
           select: { id: true, username: true, email: true },
         },
-        classTeachers: {
+        class_teachers: {
           include: {
-            classSection: {
+            class_sections: {
               include: {
-                class: true,
-                section: true,
+                classes: true,
+                sections: true,
               },
             },
           },
         },
-        teacherSubjects: {
+        teacher_subjects: {
           include: {
-            subject: true,
+            subjects: true,
           },
         },
       },
@@ -189,10 +189,10 @@ export async function PUT(
       where: { id: staffId },
       data: updateData,
       include: {
-        role: true,
-        department: true,
-        designation: true,
-        user: {
+        roles: true,
+        departments: true,
+        designations: true,
+        users: {
           select: { id: true, username: true },
         },
       },
@@ -229,7 +229,7 @@ export async function DELETE(
         schoolId,
       },
       include: {
-        user: true,
+        users: true,
       },
     });
 
@@ -240,9 +240,9 @@ export async function DELETE(
     // Delete staff (cascading will handle related records)
     await prisma.$transaction(async (tx) => {
       // Delete user if exists
-      if (staff.user) {
-        await tx.user.delete({
-          where: { id: staff.user.id },
+      if (staff.users) {
+        await tx.users.delete({
+          where: { id: staff.users.id },
         });
       }
 

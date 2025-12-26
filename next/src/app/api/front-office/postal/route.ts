@@ -3,7 +3,7 @@ import { prisma } from '@/lib/db';
 
 export async function GET() {
   try {
-    const records = await prisma.postalDispatch.findMany({
+    const records = await prisma.postal_dispatches.findMany({
       orderBy: { date: 'desc' },
     });
     return NextResponse.json(records);
@@ -18,11 +18,11 @@ export async function POST(request: NextRequest) {
     const data = await request.json();
     
     // Generate reference number
-    const count = await prisma.postalDispatch.count();
+    const count = await prisma.postal_dispatches.count();
     const prefix = data.type === 'receive' ? 'IN' : 'OUT';
     const referenceNo = `${prefix}-${String(count + 1).padStart(5, '0')}`;
     
-    const record = await prisma.postalDispatch.create({
+    const record = await prisma.postal_dispatches.create({
       data: {
         referenceNo,
         type: data.type, // 'dispatch' or 'receive'

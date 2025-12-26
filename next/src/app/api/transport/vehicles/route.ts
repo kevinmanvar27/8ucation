@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
 
@@ -28,12 +28,13 @@ export async function GET(request: NextRequest) {
       where.isActive = isActive === 'true';
     }
 
-    const vehicles = await prisma.vehicle.findMany({
+    const vehicles = await prisma.vehicles.findMany({
       where,
       include: {
-        vehicleRoutes: {
+        // Fixed: vehicleRoutes -> vehicle_routes, route -> transport_routes
+        vehicle_routes: {
           include: {
-            route: { select: { id: true, title: true } }
+            transport_routes: { select: { id: true, title: true } }
           }
         },
       },
@@ -72,7 +73,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Vehicle number is required' }, { status: 400 });
     }
 
-    const vehicle = await prisma.vehicle.create({
+    const vehicle = await prisma.vehicles.create({
       data: {
         schoolId,
         vehicleNo,

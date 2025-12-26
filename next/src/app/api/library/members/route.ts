@@ -26,14 +26,14 @@ export async function GET(request: NextRequest) {
 
     // Filter by school through student relation
     if (memberType === 'student' || !memberType) {
-      where.student = { schoolId };
+      where.students = { schoolId };
     }
 
     const [members, total] = await Promise.all([
-      prisma.libraryMember.findMany({
+      prisma.library_members.findMany({
         where,
         include: {
-          student: {
+          students: {
             select: { id: true, admissionNo: true, firstName: true, lastName: true, schoolId: true },
           },
         },
@@ -41,12 +41,12 @@ export async function GET(request: NextRequest) {
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.libraryMember.count({ where }),
+      prisma.library_members.count({ where }),
     ]);
 
     // Filter by school and enrich with member details
     const filteredMembers = members.filter(m => 
-      m.memberType === 'student' ? m.student?.schoolId === schoolId : true
+      m.memberType === 'student' ? m.students?.schoolId === schoolId : true
     );
 
     return NextResponse.json({
@@ -82,7 +82,7 @@ export async function POST(request: NextRequest) {
 
     // Verify student belongs to the school
     if (studentId) {
-      const student = await prisma.student.findFirst({
+      const student = await prisma.students.findFirst({
         where: { id: parseInt(studentId), schoolId },
       });
       if (!student) {
@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Check if student already has a library membership
-      const existingMember = await prisma.libraryMember.findUnique({
+      const existingMember = await prisma.library_members.findUnique({
         where: { studentId: parseInt(studentId) },
       });
       if (existingMember) {
@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
     // Generate library card number if not provided
     const cardNo = libraryCardNo || `LIB-${memberType.toUpperCase().slice(0, 3)}-${Date.now()}`;
 
-    const member = await prisma.libraryMember.create({
+    const member = await prisma.library_members.create({
       data: {
         memberType,
         studentId: studentId ? parseInt(studentId) : null,
@@ -109,7 +109,7 @@ export async function POST(request: NextRequest) {
         libraryCardNo: cardNo,
       },
       include: {
-        student: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
+        students: { select: { id: true, admissionNo: true, firstName: true, lastName: true } },
       },
     });
 

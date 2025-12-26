@@ -24,13 +24,13 @@ export async function GET(request: NextRequest) {
 
     // Filter by route if provided
     if (routeId) {
-      where.routePickupPoint = { routeId: parseInt(routeId) };
+      where.route_pickup_points = { routeId: parseInt(routeId) };
     }
     if (pickupPointId) {
       where.routePickupPointId = parseInt(pickupPointId);
     }
 
-    const students = await prisma.student.findMany({
+    const students = await prisma.students.findMany({
       where,
       select: {
         id: true,
@@ -38,12 +38,12 @@ export async function GET(request: NextRequest) {
         firstName: true,
         lastName: true,
         routePickupPointId: true,
-        routePickupPoint: {
+        route_pickup_points: {
           select: {
             id: true,
             pickupTime: true,
-            route: { select: { id: true, title: true, fare: true } },
-            pickupPoint: { select: { id: true, name: true, address: true } },
+            transport_routes: { select: { id: true, title: true, fare: true } },
+            pickup_points: { select: { id: true, name: true, address: true } },
           },
         },
       },
@@ -74,7 +74,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify student belongs to school
-    const student = await prisma.student.findFirst({
+    const student = await prisma.students.findFirst({
       where: { id: parseInt(studentId), schoolId },
     });
 
@@ -83,14 +83,14 @@ export async function POST(request: NextRequest) {
     }
 
     // Verify route pickup point exists and route belongs to school
-    const routePickupPoint = await prisma.routePickupPoint.findFirst({
+    const routePickupPoint = await prisma.route_pickup_points.findFirst({
       where: { 
         id: parseInt(routePickupPointId),
-        route: { schoolId },
+        transport_routes: { schoolId },
       },
       include: {
-        route: { select: { id: true, title: true, fare: true } },
-        pickupPoint: { select: { id: true, name: true } },
+        transport_routes: { select: { id: true, title: true, fare: true } },
+        pickup_points: { select: { id: true, name: true } },
       },
     });
 
@@ -99,7 +99,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Update student with transport assignment
-    const updatedStudent = await prisma.student.update({
+    const updatedStudent = await prisma.students.update({
       where: { id: parseInt(studentId) },
       data: { routePickupPointId: parseInt(routePickupPointId) },
       select: {
@@ -107,12 +107,12 @@ export async function POST(request: NextRequest) {
         admissionNo: true,
         firstName: true,
         lastName: true,
-        routePickupPoint: {
+        route_pickup_points: {
           select: {
             id: true,
             pickupTime: true,
-            route: { select: { id: true, title: true, fare: true } },
-            pickupPoint: { select: { id: true, name: true } },
+            transport_routes: { select: { id: true, title: true, fare: true } },
+            pickup_points: { select: { id: true, name: true } },
           },
         },
       },
@@ -142,7 +142,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Verify student belongs to school
-    const student = await prisma.student.findFirst({
+    const student = await prisma.students.findFirst({
       where: { id: parseInt(studentId), schoolId },
     });
 
@@ -151,7 +151,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Remove transport assignment
-    await prisma.student.update({
+    await prisma.students.update({
       where: { id: parseInt(studentId) },
       data: { routePickupPointId: null },
     });

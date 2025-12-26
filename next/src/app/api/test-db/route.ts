@@ -4,7 +4,7 @@ import prisma from '@/lib/db';
 export async function GET(request: NextRequest) {
   try {
     // Test database connection
-    const schools = await prisma.school.findMany({
+    const schools = await prisma.schools.findMany({
       take: 5,
     });
 

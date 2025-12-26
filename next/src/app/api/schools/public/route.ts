@@ -3,7 +3,7 @@ import prisma from '@/lib/db';
 
 export async function GET() {
   try {
-    const schools = await prisma.school.findMany({
+    const schools = await prisma.schools.findMany({
       where: {
         isActive: true,
       },

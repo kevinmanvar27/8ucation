@@ -10,7 +10,7 @@ async function main() {
   console.log('🌱 Starting database seed...');
 
   // Create default school
-  const school = await prisma.school.upsert({
+  const school = await prisma.schools.upsert({
     where: { code: 'DEMO' },
     update: {},
     create: {
@@ -59,7 +59,7 @@ async function main() {
     permissionNames.map((name) => {
       const [module, action] = name.split('.');
       const slug = name.replace(/\./g, '_');
-      return prisma.permission.upsert({
+      return prisma.permissions.upsert({
         where: { slug },
         update: {},
         create: {
@@ -73,7 +73,7 @@ async function main() {
   console.log('✅ Created', permissions.length, 'permissions');
 
   // Create roles
-  const superAdminRole = await prisma.role.upsert({
+  const superAdminRole = await prisma.roles.upsert({
     where: { schoolId_slug: { schoolId: school.id, slug: slugify('Super Admin') } },
     update: {},
     create: {
@@ -84,7 +84,7 @@ async function main() {
     },
   });
 
-  const adminRole = await prisma.role.upsert({
+  const adminRole = await prisma.roles.upsert({
     where: { schoolId_slug: { schoolId: school.id, slug: slugify('Admin') } },
     update: {},
     create: {
@@ -95,7 +95,7 @@ async function main() {
     },
   });
 
-  const teacherRole = await prisma.role.upsert({
+  const teacherRole = await prisma.roles.upsert({
     where: { schoolId_slug: { schoolId: school.id, slug: slugify('Teacher') } },
     update: {},
     create: {
@@ -106,7 +106,7 @@ async function main() {
     },
   });
 
-  const studentRole = await prisma.role.upsert({
+  const studentRole = await prisma.roles.upsert({
     where: { schoolId_slug: { schoolId: school.id, slug: slugify('Student') } },
     update: {},
     create: {
@@ -117,7 +117,7 @@ async function main() {
     },
   });
 
-  const parentRole = await prisma.role.upsert({
+  const parentRole = await prisma.roles.upsert({
     where: { schoolId_slug: { schoolId: school.id, slug: slugify('Parent') } },
     update: {},
     create: {
@@ -128,7 +128,7 @@ async function main() {
     },
   });
 
-  const accountantRole = await prisma.role.upsert({
+  const accountantRole = await prisma.roles.upsert({
     where: { schoolId_slug: { schoolId: school.id, slug: slugify('Accountant') } },
     update: {},
     create: {
@@ -139,7 +139,7 @@ async function main() {
     },
   });
 
-  const librarianRole = await prisma.role.upsert({
+  const librarianRole = await prisma.roles.upsert({
     where: { schoolId_slug: { schoolId: school.id, slug: slugify('Librarian') } },
     update: {},
     create: {
@@ -154,7 +154,7 @@ async function main() {
 
   // Assign all permissions to Super Admin and Admin
   for (const permission of permissions) {
-    await prisma.rolePermission.upsert({
+    await prisma.role_permissions.upsert({
       where: {
         roleId_permissionId: { roleId: superAdminRole.id, permissionId: permission.id },
       },
@@ -165,7 +165,7 @@ async function main() {
       },
     });
 
-    await prisma.rolePermission.upsert({
+    await prisma.role_permissions.upsert({
       where: {
         roleId_permissionId: { roleId: adminRole.id, permissionId: permission.id },
       },
@@ -181,7 +181,7 @@ async function main() {
   // Create default admin user
   const hashedPassword = await bcrypt.hash('admin123', 12);
   
-  const adminUser = await prisma.user.upsert({
+  const adminUser = await prisma.users.upsert({
     where: { schoolId_email: { schoolId: school.id, email: 'admin@demoschool.com' } },
     update: {},
     create: {
@@ -198,7 +198,7 @@ async function main() {
 
   // Create academic session
   const currentYear = new Date().getFullYear();
-  const sessionRecord = await prisma.session.upsert({
+  const sessionRecord = await prisma.sessions.upsert({
     where: { schoolId_session: { schoolId: school.id, session: `${currentYear}-${currentYear + 1}` } },
     update: {},
     create: {
@@ -215,7 +215,7 @@ async function main() {
   const classNames = ['Nursery', 'LKG', 'UKG', 'Class 1', 'Class 2', 'Class 3', 'Class 4', 'Class 5', 'Class 6', 'Class 7', 'Class 8', 'Class 9', 'Class 10'];
   
   for (let i = 0; i < classNames.length; i++) {
-    await prisma.class.upsert({
+    await prisma.classes.upsert({
       where: { schoolId_className: { schoolId: school.id, className: classNames[i] } },
       update: {},
       create: {
@@ -232,7 +232,7 @@ async function main() {
   const sectionNames = ['A', 'B', 'C', 'D'];
   
   for (const sectionName of sectionNames) {
-    await prisma.section.upsert({
+    await prisma.sections.upsert({
       where: { schoolId_sectionName: { schoolId: school.id, sectionName } },
       update: {},
       create: {
@@ -251,7 +251,7 @@ async function main() {
   ];
   
   for (const subjectName of subjectNames) {
-    await prisma.subject.upsert({
+    await prisma.subjects.upsert({
       where: { schoolId_name: { schoolId: school.id, name: subjectName } },
       update: {},
       create: {
@@ -269,7 +269,7 @@ async function main() {
   const departmentNames = ['Administration', 'Teaching', 'Accounts', 'Library', 'Transport', 'Maintenance'];
   
   for (const deptName of departmentNames) {
-    await prisma.department.upsert({
+    await prisma.departments.upsert({
       where: { schoolId_name: { schoolId: school.id, name: deptName } },
       update: {},
       create: {
@@ -285,7 +285,7 @@ async function main() {
   const designationNames = ['Principal', 'Vice Principal', 'Senior Teacher', 'Teacher', 'Clerk', 'Accountant', 'Librarian', 'Driver', 'Peon'];
   
   for (const desigName of designationNames) {
-    await prisma.designation.upsert({
+    await prisma.designations.upsert({
       where: { schoolId_name: { schoolId: school.id, name: desigName } },
       update: {},
       create: {
@@ -309,7 +309,7 @@ async function main() {
   ];
   
   for (const ft of feeTypes) {
-    await prisma.feeType.upsert({
+    await prisma.fee_types.upsert({
       where: { schoolId_name: { schoolId: school.id, name: ft.name } },
       update: {},
       create: {
@@ -334,7 +334,7 @@ async function main() {
   ];
   
   for (const gradeData of grades) {
-    await prisma.grade.upsert({
+    await prisma.grades.upsert({
       where: { schoolId_name: { schoolId: school.id, name: gradeData.name } },
       update: {},
       create: {
@@ -356,7 +356,7 @@ async function main() {
   ];
   
   for (const lt of leaveTypes) {
-    await prisma.leaveType.upsert({
+    await prisma.leave_types.upsert({
       where: { schoolId_name: { schoolId: school.id, name: lt.name } },
       update: {},
       create: {
@@ -372,7 +372,7 @@ async function main() {
   const contentTypes = ['Assignments', 'Study Material', 'Syllabus', 'Other Downloads'];
   
   for (const ctName of contentTypes) {
-    await prisma.contentType.upsert({
+    await prisma.content_types.upsert({
       where: { schoolId_name: { schoolId: school.id, name: ctName } },
       update: {},
       create: {
@@ -388,7 +388,7 @@ async function main() {
   const incomeHeads = ['Fee Collection', 'Donations', 'Grants', 'Interest', 'Other Income'];
   
   for (const ihName of incomeHeads) {
-    await prisma.incomeHead.upsert({
+    await prisma.income_heads.upsert({
       where: { schoolId_name: { schoolId: school.id, name: ihName } },
       update: {},
       create: {
@@ -404,7 +404,7 @@ async function main() {
   const expenseHeads = ['Salary', 'Utilities', 'Maintenance', 'Stationery', 'Transport', 'Events', 'Other Expenses'];
   
   for (const ehName of expenseHeads) {
-    await prisma.expenseHead.upsert({
+    await prisma.expense_heads.upsert({
       where: { schoolId_name: { schoolId: school.id, name: ehName } },
       update: {},
       create: {

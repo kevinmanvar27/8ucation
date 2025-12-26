@@ -4,7 +4,7 @@ import { prisma } from '@/lib/db';
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const data = await request.json();
-    const record = await prisma.postalDispatch.update({
+    const record = await prisma.postal_dispatches.update({
       where: { id: parseInt(params.id) },
       data: {
         type: data.type,
@@ -25,7 +25,7 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
 
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await prisma.postalDispatch.delete({
+    await prisma.postal_dispatches.delete({
       where: { id: parseInt(params.id) },
     });
     return NextResponse.json({ success: true });

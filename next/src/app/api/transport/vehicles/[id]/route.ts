@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
+import { NextRequest, NextResponse } from 'next/server';
 import { authOptions } from '@/lib/auth';
 import prisma from '@/lib/db';
 
@@ -15,15 +15,17 @@ export async function GET(
     }
 
     const schoolId = parseInt(session.user.schoolId);
-    const vehicle = await prisma.vehicle.findFirst({
+    const vehicle = await prisma.vehicles.findFirst({
       where: { id: parseInt(params.id), schoolId },
       include: {
-        vehicleRoutes: {
+        // Fixed: vehicleRoutes -> vehicle_routes, route -> transport_routes
+        vehicle_routes: {
           include: {
-            route: {
+            transport_routes: {
               include: {
-                routePickupPoints: {
-                  include: { pickupPoint: true }
+                // Fixed: routePickupPoints -> route_pickup_points, pickupPoint -> pickup_points
+                route_pickup_points: {
+                  include: { pickup_points: true }
                 }
               }
             }
@@ -57,7 +59,7 @@ export async function PUT(
     const schoolId = parseInt(session.user.schoolId);
     const body = await request.json();
 
-    const existing = await prisma.vehicle.findFirst({
+    const existing = await prisma.vehicles.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -65,7 +67,7 @@ export async function PUT(
       return NextResponse.json({ success: false, error: 'Vehicle not found' }, { status: 404 });
     }
 
-    const vehicle = await prisma.vehicle.update({
+    const vehicle = await prisma.vehicles.update({
       where: { id: parseInt(params.id) },
       data: {
         vehicleNo: body.vehicleNo,
@@ -99,7 +101,7 @@ export async function DELETE(
 
     const schoolId = parseInt(session.user.schoolId);
     
-    const existing = await prisma.vehicle.findFirst({
+    const existing = await prisma.vehicles.findFirst({
       where: { id: parseInt(params.id), schoolId },
     });
 
@@ -107,7 +109,7 @@ export async function DELETE(
       return NextResponse.json({ success: false, error: 'Vehicle not found' }, { status: 404 });
     }
 
-    await prisma.vehicle.delete({ where: { id: parseInt(params.id) } });
+    await prisma.vehicles.delete({ where: { id: parseInt(params.id) } });
 
     return NextResponse.json({ success: true, message: 'Vehicle deleted successfully' });
   } catch (error) {

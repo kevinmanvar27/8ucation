@@ -32,13 +32,13 @@ export async function GET(request: NextRequest) {
     }
 
     const [books, total] = await Promise.all([
-      prisma.book.findMany({
+      prisma.books.findMany({
         where,
         orderBy: { title: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.book.count({ where }),
+      prisma.books.count({ where }),
     ]);
 
     return NextResponse.json({
@@ -80,7 +80,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Book title and number are required' }, { status: 400 });
     }
 
-    const book = await prisma.book.create({
+    const book = await prisma.books.create({
       data: {
         schoolId,
         title,

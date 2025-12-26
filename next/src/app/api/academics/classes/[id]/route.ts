@@ -20,19 +20,19 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Invalid class ID' }, { status: 400 });
     }
 
-    const classData = await prisma.class.findFirst({
+    const classData = await prisma.classes.findFirst({
       where: {
         id: classId,
         schoolId: Number(session.user.schoolId),
       },
       include: {
-        classSections: {
-          include: { section: true },
+        class_sections: {
+          include: { sections: true },
         },
-        subjectGroups: {
+        subject_groups: {
           include: { 
-            subjectGroupSubjects: {
-              include: { subject: true }
+            subject_group_subjects: {
+              include: { subjects: true }
             }
           },
         },
@@ -84,7 +84,7 @@ export async function PUT(
     const validatedData = updateClassSchema.parse(body);
 
     // Check if class exists
-    const existing = await prisma.class.findFirst({
+    const existing = await prisma.classes.findFirst({
       where: {
         id: classId,
         schoolId,
@@ -100,7 +100,7 @@ export async function PUT(
 
     // Check for duplicate name
     if (validatedData.name && validatedData.name !== existing.className) {
-      const duplicate = await prisma.class.findFirst({
+      const duplicate = await prisma.classes.findFirst({
         where: {
           schoolId,
           className: validatedData.name,
@@ -118,7 +118,7 @@ export async function PUT(
 
     const updated = await prisma.$transaction(async (tx) => {
       // Update class
-      const classUpdated = await tx.class.update({
+      const classUpdated = await tx.classes.update({
         where: { id: classId },
         data: {
           className: validatedData.name,
@@ -130,15 +130,14 @@ export async function PUT(
       // Update sections if provided
       if (validatedData.sectionIds !== undefined) {
         // Remove existing sections
-        await tx.classSection.deleteMany({
+        await tx.class_sections.deleteMany({
           where: { classId },
         });
 
         // Add new sections
         if (validatedData.sectionIds.length > 0) {
-          await tx.classSection.createMany({
+          await tx.class_sections.createMany({
             data: validatedData.sectionIds.map(sectionId => ({
-              schoolId,
               classId,
               sectionId,
             })),
@@ -188,7 +187,7 @@ export async function DELETE(
     const schoolId = Number(session.user.schoolId);
 
     // Check if class exists
-    const existing = await prisma.class.findFirst({
+    const existing = await prisma.classes.findFirst({
       where: {
         id: classId,
         schoolId,
@@ -203,9 +202,9 @@ export async function DELETE(
     }
 
     // Check if class has students via ClassSection
-    const studentCount = await prisma.studentSession.count({
+    const studentCount = await prisma.student_sessions.count({
       where: { 
-        classSection: {
+        class_sections: {
           classId 
         }
       },
@@ -218,7 +217,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.class.delete({
+    await prisma.classes.delete({
       where: { id: classId },
     });
 

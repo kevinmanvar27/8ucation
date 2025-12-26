@@ -17,22 +17,22 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Email and password are required');
         }
 
-        // Find user with school context
-        const user = await prisma.user.findFirst({
+        // Find user with school context (using plural relation names)
+        const user = await prisma.users.findFirst({
           where: {
             email: credentials.email,
             isActive: true,
-            school: credentials.schoolSlug
+            schools: credentials.schoolSlug
               ? { code: credentials.schoolSlug, isActive: true }
               : { isActive: true },
           },
           include: {
-            school: true,
-            role: {
+            schools: true,
+            roles: {
               include: {
-                permissions: {
+                role_permissions: {
                   include: {
-                    permission: true,
+                    permissions: true,
                   },
                 },
               },
@@ -40,7 +40,7 @@ export const authOptions: NextAuthOptions = {
           },
         });
 
-        if (!user || !user.role) {
+        if (!user || !user.roles) {
           throw new Error('Invalid email or password');
         }
 
@@ -50,17 +50,17 @@ export const authOptions: NextAuthOptions = {
           throw new Error('Invalid email or password');
         }
 
-        // Extract permissions
-        const permissions = user.role.permissions.map((rp) => rp.permission.name);
+        // Extract permissions from role_permissions relation
+        const permissions = user.roles.role_permissions.map((rp) => rp.permissions.name);
 
         return {
           id: String(user.id),
           email: user.email,
           name: user.username,
-          role: user.role.name,
+          role: user.roles.name,
           schoolId: String(user.schoolId),
-          schoolName: user.school.name,
-          schoolCode: user.school.code,
+          schoolName: user.schools.name,
+          schoolCode: user.schools.code,
           permissions,
         };
       },

@@ -26,7 +26,7 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Invalid ID' }, { status: 400 });
     }
 
-    const designation = await prisma.designation.findFirst({
+    const designation = await prisma.designations.findFirst({
       where: {
         id: designationId,
         schoolId,
@@ -87,7 +87,7 @@ export async function PUT(
     }
 
     // Check if exists
-    const existing = await prisma.designation.findFirst({
+    const existing = await prisma.designations.findFirst({
       where: {
         id: designationId,
         schoolId,
@@ -99,7 +99,7 @@ export async function PUT(
     }
 
     // Check for duplicate name
-    const duplicate = await prisma.designation.findFirst({
+    const duplicate = await prisma.designations.findFirst({
       where: {
         schoolId,
         name: validation.data.name,
@@ -114,7 +114,7 @@ export async function PUT(
       );
     }
 
-    const designation = await prisma.designation.update({
+    const designation = await prisma.designations.update({
       where: { id: designationId },
       data: validation.data,
       include: {
@@ -151,7 +151,7 @@ export async function DELETE(
     }
 
     // Check if exists
-    const designation = await prisma.designation.findFirst({
+    const designation = await prisma.designations.findFirst({
       where: {
         id: designationId,
         schoolId,
@@ -177,7 +177,7 @@ export async function DELETE(
       );
     }
 
-    await prisma.designation.delete({
+    await prisma.designations.delete({
       where: { id: designationId },
     });
 

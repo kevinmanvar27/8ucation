@@ -14,12 +14,12 @@ export async function GET(request: NextRequest) {
 
     const schoolId = Number(session.user.schoolId);
 
-    const subjects = await prisma.subject.findMany({
+    const subjects = await prisma.subjects.findMany({
       where: { schoolId },
       orderBy: { name: 'asc' },
       include: {
         _count: {
-          select: { subjectGroupSubjects: true },
+          select: { subject_group_subjects: true },
         },
       },
     });
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const validatedData = createSubjectSchema.parse(body);
 
     // Check if subject name already exists (unique constraint)
-    const existingName = await prisma.subject.findFirst({
+    const existingName = await prisma.subjects.findFirst({
       where: {
         schoolId,
         name: validatedData.name,
@@ -70,7 +70,7 @@ export async function POST(request: NextRequest) {
 
     // Check if subject code already exists (if provided)
     if (validatedData.code) {
-      const existingCode = await prisma.subject.findFirst({
+      const existingCode = await prisma.subjects.findFirst({
         where: {
           schoolId,
           code: validatedData.code,
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const subject = await prisma.subject.create({
+    const subject = await prisma.subjects.create({
       data: {
         schoolId,
         name: validatedData.name,

@@ -1,4 +1,5 @@
 'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
@@ -11,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Badge } from '@/components/ui/badge';
 import { Modal } from '@/components/ui/modal';
 import { Loading, TableLoading } from '@/components/ui/loading';
+import { formatDateShort } from '@/lib/utils';
 import { 
   Plus, 
   Search, 
@@ -332,7 +334,7 @@ export default function StudentsPage() {
                                 {student.firstName} {student.lastName}
                               </p>
                               <p className="text-sm text-muted-foreground">
-                                {student.gender} • {new Date(student.dateOfBirth).toLocaleDateString()}
+                                {student.gender} • {formatDateShort(student.dateOfBirth)}
                               </p>
                             </div>
                           </div>

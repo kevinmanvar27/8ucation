@@ -20,7 +20,7 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const roles = await prisma.role.findMany({
+    const roles = await prisma.roles.findMany({
       where: { schoolId },
       include: {
         _count: {
@@ -54,12 +54,11 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/(^-|-$)/g, '');
 
-    const role = await prisma.role.create({
+    const role = await prisma.roles.create({
       data: {
         schoolId,
         name: data.name,
         slug,
-        permissions: data.permissions || [],
         isSystem: false,
       },
     });

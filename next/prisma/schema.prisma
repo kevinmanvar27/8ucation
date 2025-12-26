@@ -17,7 +17,7 @@ model banners {
   sortOrder   Int      @default(0)
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId], map: "banners_schoolId_fkey")
@@ -33,7 +33,7 @@ model book_issues {
   returnDate      DateTime?
   status          String          @default("issued") @db.VarChar(20)
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime
+  updatedAt DateTime @updatedAt
   books           books           @relation(fields: [bookId], references: [id], onDelete: Cascade)
   library_members library_members @relation(fields: [memberId], references: [id], onDelete: Cascade)
   students        students?       @relation(fields: [studentId], references: [id])
@@ -60,7 +60,7 @@ model books {
   description String?       @db.Text
   isActive    Boolean       @default(true)
   createdAt   DateTime      @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   book_issues book_issues[]
   schools     schools       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -73,11 +73,12 @@ model class_sections {
   sectionId        Int
   capacity         Int                @default(0)
   createdAt        DateTime           @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime           @updatedAt
   classes          classes            @relation(fields: [classId], references: [id], onDelete: Cascade)
   sections         sections           @relation(fields: [sectionId], references: [id], onDelete: Cascade)
   class_teachers   class_teachers[]
   homeworks        homeworks[]
+  lesson_plans     lesson_plans[]
   student_sessions student_sessions[]
   timetables       timetables[]
 
@@ -103,9 +104,9 @@ model classes {
   sortOrder      Int              @default(0)
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   class_sections class_sections[]
-  schools        schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  schools     schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   fees_masters   fees_masters[]
   homeworks      homeworks[]
   online_exams   online_exams[]
@@ -126,7 +127,7 @@ model cms_menu_items {
   sortOrder            Int              @default(0)
   isActive             Boolean          @default(true)
   createdAt            DateTime         @default(now())
-  updatedAt            DateTime
+  updatedAt DateTime @updatedAt
   cms_menus            cms_menus        @relation(fields: [menuId], references: [id], onDelete: Cascade)
   cms_menu_items       cms_menu_items?  @relation("cms_menu_itemsTocms_menu_items", fields: [parentId], references: [id])
   other_cms_menu_items cms_menu_items[] @relation("cms_menu_itemsTocms_menu_items")
@@ -142,7 +143,7 @@ model cms_menus {
   slug           String           @db.VarChar(100)
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   cms_menu_items cms_menu_items[]
   schools        schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -160,7 +161,7 @@ model cms_pages {
   metaKeywords    String?  @db.Text
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
-  updatedAt       DateTime
+  updatedAt DateTime @updatedAt
   schools         schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@unique([schoolId, slug])
@@ -181,7 +182,7 @@ model complaints {
   note          String?  @db.Text
   status        String   @default("pending") @db.VarChar(20)
   createdAt     DateTime @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   schools       schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId], map: "complaints_schoolId_fkey")
@@ -193,7 +194,7 @@ model content_types {
   name      String     @db.VarChar(100)
   isActive  Boolean    @default(true)
   createdAt DateTime   @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   schools   schools    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   contents  contents[]
 
@@ -209,7 +210,7 @@ model contents {
   shareWith     String        @default("all") @db.VarChar(50)
   isActive      Boolean       @default(true)
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   content_types content_types @relation(fields: [contentTypeId], references: [id], onDelete: Cascade)
 
   @@index([contentTypeId], map: "contents_contentTypeId_fkey")
@@ -221,7 +222,7 @@ model departments {
   name      String   @db.VarChar(100)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   schools   schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   staff     staff[]
 
@@ -234,7 +235,7 @@ model designations {
   name      String   @db.VarChar(100)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   schools   schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   staff     staff[]
 
@@ -256,7 +257,7 @@ model enquiries {
   note               String?              @db.Text
   assignedTo         Int?
   createdAt          DateTime             @default(now())
-  updatedAt          DateTime
+  updatedAt DateTime @updatedAt
   schools            schools              @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   enquiry_follow_ups enquiry_follow_ups[]
 
@@ -289,7 +290,7 @@ model events {
   image       String?   @db.VarChar(255)
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   schools     schools   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId], map: "events_schoolId_fkey")
@@ -304,7 +305,7 @@ model exam_results {
   isAbsent         Boolean          @default(false)
   note             String?          @db.Text
   createdAt        DateTime         @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime           @updatedAt
   exam_subjects    exam_subjects    @relation(fields: [examSubjectId], references: [id], onDelete: Cascade)
   students         students         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   student_sessions student_sessions @relation(fields: [studentSessionId], references: [id], onDelete: Cascade)
@@ -321,7 +322,7 @@ model exam_schedules {
   startDate DateTime?
   endDate   DateTime?
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   exams     exams     @relation(fields: [examId], references: [id], onDelete: Cascade)
   sessions  sessions  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
 
@@ -340,7 +341,7 @@ model exam_subjects {
   maxMarks     Decimal        @db.Decimal(5, 2)
   minMarks     Decimal        @db.Decimal(5, 2)
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime
+  updatedAt DateTime @updatedAt
   exam_results exam_results[]
   exams        exams          @relation(fields: [examId], references: [id], onDelete: Cascade)
   subjects     subjects       @relation(fields: [subjectId], references: [id], onDelete: Cascade)
@@ -350,17 +351,18 @@ model exam_subjects {
 }
 
 model exams {
-  id             Int              @id @default(autoincrement())
-  schoolId       Int
-  name           String           @db.VarChar(100)
-  description    String?          @db.Text
-  isPublished    Boolean          @default(false)
-  isActive       Boolean          @default(true)
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime
-  exam_schedules exam_schedules[]
-  exam_subjects  exam_subjects[]
-  schools        schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  id               Int                @id @default(autoincrement())
+  schoolId         Int
+  name             String             @db.VarChar(100)
+  description      String?            @db.Text
+  isPublished      Boolean            @default(false)
+  isActive         Boolean            @default(true)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  exam_schedules   exam_schedules[]
+  exam_subjects    exam_subjects[]
+  exam_group_exams exam_group_exams[]
+  schools          schools            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId], map: "exams_schoolId_fkey")
 }
@@ -372,7 +374,7 @@ model expense_heads {
   description String?    @db.Text
   isActive    Boolean    @default(true)
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   schools     schools    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   expenses    expenses[]
 
@@ -389,7 +391,7 @@ model expenses {
   document      String?       @db.VarChar(255)
   description   String?       @db.Text
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   expense_heads expense_heads @relation(fields: [expenseHeadId], references: [id], onDelete: Cascade)
 
   @@index([expenseHeadId], map: "expenses_expenseHeadId_fkey")
@@ -418,7 +420,7 @@ model fee_groups {
   description     String?           @db.Text
   isActive        Boolean           @default(true)
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime
+  updatedAt DateTime @updatedAt
   fee_group_types fee_group_types[]
   schools         schools           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   fees_masters    fees_masters[]
@@ -439,7 +441,7 @@ model fee_payments {
   note                 String?              @db.Text
   collectedBy          Int?
   createdAt            DateTime             @default(now())
-  updatedAt            DateTime
+  updatedAt DateTime @updatedAt
   student_fees_masters student_fees_masters @relation(fields: [studentFeesMasterId], references: [id], onDelete: Cascade)
   students             students             @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -455,7 +457,7 @@ model fee_types {
   description     String?           @db.Text
   isActive        Boolean           @default(true)
   createdAt       DateTime          @default(now())
-  updatedAt       DateTime
+  updatedAt DateTime @updatedAt
   fee_group_types fee_group_types[]
   schools         schools           @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -468,7 +470,7 @@ model fees_masters {
   feeGroupId           Int
   classId              Int
   createdAt            DateTime               @default(now())
-  updatedAt            DateTime
+  updatedAt DateTime @updatedAt
   classes              classes                @relation(fields: [classId], references: [id], onDelete: Cascade)
   fee_groups           fee_groups             @relation(fields: [feeGroupId], references: [id], onDelete: Cascade)
   sessions             sessions               @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -486,7 +488,7 @@ model galleries {
   description    String?          @db.Text
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   schools        schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   gallery_images gallery_images[]
 
@@ -515,31 +517,13 @@ model grades {
   description   String?  @db.Text
   isActive      Boolean  @default(true)
   createdAt     DateTime @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   schools       schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@unique([schoolId, name])
 }
 
-model homework_submissions {
-  id          Int       @id @default(autoincrement())
-  homeworkId  Int
-  studentId   Int
-  message     String?   @db.Text
-  document    String?   @db.VarChar(255)
-  status      String    @default("pending") @db.VarChar(20)
-  marks       Decimal?  @db.Decimal(5, 2)
-  remark      String?   @db.Text
-  submittedAt DateTime?
-  evaluatedAt DateTime?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime
-  homeworks   homeworks @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
-  students    students  @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
-  @@unique([homeworkId, studentId])
-  @@index([studentId], map: "homework_submissions_studentId_fkey")
-}
 
 model homeworks {
   id                   Int                    @id @default(autoincrement())
@@ -555,7 +539,7 @@ model homeworks {
   document             String?                @db.VarChar(255)
   evaluationDate       DateTime?
   createdAt            DateTime               @default(now())
-  updatedAt            DateTime
+  updatedAt DateTime @updatedAt
   homework_submissions homework_submissions[]
   classes              classes                @relation(fields: [classId], references: [id], onDelete: Cascade)
   class_sections       class_sections         @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
@@ -579,7 +563,7 @@ model hostel_rooms {
   costPerBed  Decimal    @default(0.00) @db.Decimal(15, 2)
   description String?    @db.Text
   createdAt   DateTime   @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   hostels     hostels    @relation(fields: [hostelId], references: [id], onDelete: Cascade)
   room_types  room_types @relation(fields: [roomTypeId], references: [id], onDelete: Cascade)
   students    students[]
@@ -598,7 +582,7 @@ model hostels {
   description  String?        @db.Text
   isActive     Boolean        @default(true)
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime
+  updatedAt DateTime @updatedAt
   hostel_rooms hostel_rooms[]
   schools      schools        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -612,7 +596,7 @@ model income_heads {
   description String?   @db.Text
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   schools     schools   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   incomes     incomes[]
 
@@ -629,7 +613,7 @@ model incomes {
   document     String?      @db.VarChar(255)
   description  String?      @db.Text
   createdAt    DateTime     @default(now())
-  updatedAt    DateTime
+  updatedAt DateTime @updatedAt
   income_heads income_heads @relation(fields: [incomeHeadId], references: [id], onDelete: Cascade)
 
   @@index([incomeHeadId], map: "incomes_incomeHeadId_fkey")
@@ -642,7 +626,7 @@ model item_categories {
   description String?  @db.Text
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   items       items[]
 
@@ -661,7 +645,7 @@ model item_issues {
   note       String?   @db.Text
   status     String    @default("issued") @db.VarChar(20)
   createdAt  DateTime  @default(now())
-  updatedAt  DateTime
+  updatedAt DateTime @updatedAt
   items      items     @relation(fields: [itemId], references: [id], onDelete: Cascade)
 
   @@index([itemId], map: "item_issues_itemId_fkey")
@@ -677,7 +661,7 @@ model item_stocks {
   date          DateTime
   description   String?     @db.Text
   createdAt     DateTime    @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   items         items       @relation(fields: [itemId], references: [id], onDelete: Cascade)
   item_stores   item_stores @relation(fields: [storeId], references: [id], onDelete: Cascade)
   suppliers     suppliers?  @relation(fields: [supplierId], references: [id])
@@ -695,7 +679,7 @@ model item_stores {
   description String?       @db.Text
   isActive    Boolean       @default(true)
   createdAt   DateTime      @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   item_stocks item_stocks[]
   schools     schools       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -710,7 +694,7 @@ model items {
   description     String?         @db.Text
   isActive        Boolean         @default(true)
   createdAt       DateTime        @default(now())
-  updatedAt       DateTime
+  updatedAt DateTime @updatedAt
   item_issues     item_issues[]
   item_stocks     item_stocks[]
   item_categories item_categories @relation(fields: [categoryId], references: [id], onDelete: Cascade)
@@ -730,7 +714,7 @@ model leave_requests {
   approvedBy  Int?
   adminRemark String?     @db.Text
   createdAt   DateTime    @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   leave_types leave_types @relation(fields: [leaveTypeId], references: [id], onDelete: Cascade)
   staff       staff       @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
@@ -744,34 +728,14 @@ model leave_types {
   name           String           @db.VarChar(100)
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   leave_requests leave_requests[]
   schools        schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@unique([schoolId, name])
 }
 
-model lesson_plans {
-  id             Int      @id @default(autoincrement())
-  subjectId      Int
-  staffId        Int
-  title          String   @db.VarChar(255)
-  date           DateTime
-  timeFrom       String   @db.VarChar(10)
-  timeTo         String   @db.VarChar(10)
-  lectureNote    String?  @db.Text
-  objectives     String?  @db.Text
-  teachingMethod String?  @db.Text
-  homework       String?  @db.Text
-  document       String?  @db.VarChar(255)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime
-  staff          staff    @relation(fields: [staffId], references: [id], onDelete: Cascade)
-  subjects       subjects @relation(fields: [subjectId], references: [id], onDelete: Cascade)
 
-  @@index([staffId], map: "lesson_plans_staffId_fkey")
-  @@index([subjectId], map: "lesson_plans_subjectId_fkey")
-}
 
 model library_members {
   id            Int           @id @default(autoincrement())
@@ -780,7 +744,7 @@ model library_members {
   staffId       Int?
   libraryCardNo String        @db.VarChar(50)
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   book_issues   book_issues[]
   students      students?     @relation(fields: [studentId], references: [id], onDelete: Cascade)
 }
@@ -796,7 +760,7 @@ model notices {
   document    String?   @db.VarChar(255)
   isActive    Boolean   @default(true)
   createdAt   DateTime  @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   schools     schools   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId], map: "notices_schoolId_fkey")
@@ -836,7 +800,7 @@ model online_exam_results {
   endTime       DateTime?
   answers       String?      @db.LongText
   createdAt     DateTime     @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   online_exams  online_exams @relation(fields: [onlineExamId], references: [id], onDelete: Cascade)
   students      students     @relation(fields: [studentId], references: [id], onDelete: Cascade)
 
@@ -863,7 +827,7 @@ model online_exams {
   isPublished           Boolean                 @default(false)
   isActive              Boolean                 @default(true)
   createdAt             DateTime                @default(now())
-  updatedAt             DateTime
+  updatedAt DateTime @updatedAt
   online_exam_questions online_exam_questions[]
   online_exam_results   online_exam_results[]
   classes               classes                 @relation(fields: [classId], references: [id], onDelete: Cascade)
@@ -894,12 +858,14 @@ model parents {
   guardianAddress    String?    @db.Text
   guardianImage      String?    @db.VarChar(255)
   createdAt          DateTime   @default(now())
-  updatedAt          DateTime
+  updatedAt DateTime @updatedAt
   schools            schools    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   students           students[]
   users              users?
 
   @@index([schoolId], map: "parents_schoolId_fkey")
+  @@index([schoolId, guardianName])
+  @@index([schoolId, guardianPhone])
 }
 
 model payrolls {
@@ -918,7 +884,7 @@ model payrolls {
   status         String    @default("pending") @db.VarChar(20)
   note           String?   @db.Text
   createdAt      DateTime  @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   staff          staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@unique([staffId, month, year])
@@ -930,7 +896,7 @@ model permissions {
   slug             String             @unique @db.VarChar(100)
   module           String             @db.VarChar(100)
   createdAt        DateTime           @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime           @updatedAt
   role_permissions role_permissions[]
 }
 
@@ -945,7 +911,7 @@ model phone_call_logs {
   callDuration String?   @db.VarChar(20)
   note         String?   @db.Text
   createdAt    DateTime  @default(now())
-  updatedAt    DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model pickup_points {
@@ -953,7 +919,7 @@ model pickup_points {
   name                String                @db.VarChar(100)
   address             String?               @db.Text
   createdAt           DateTime              @default(now())
-  updatedAt           DateTime
+  updatedAt DateTime @updatedAt
   route_pickup_points route_pickup_points[]
 }
 
@@ -968,7 +934,7 @@ model postal_dispatches {
   note        String?  @db.Text
   document    String?  @db.VarChar(255)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model questions {
@@ -986,7 +952,7 @@ model questions {
   hint                  String?                 @db.Text
   explanation           String?                 @db.Text
   createdAt             DateTime                @default(now())
-  updatedAt             DateTime
+  updatedAt DateTime @updatedAt
   online_exam_questions online_exam_questions[]
 }
 
@@ -1013,7 +979,7 @@ model roles {
   isSystem         Boolean            @default(false)
   isActive         Boolean            @default(true)
   createdAt        DateTime           @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime           @updatedAt
   role_permissions role_permissions[]
   schools          schools            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   staff            staff[]
@@ -1027,7 +993,7 @@ model room_types {
   name         String         @db.VarChar(100)
   description  String?        @db.Text
   createdAt    DateTime       @default(now())
-  updatedAt    DateTime
+  updatedAt DateTime @updatedAt
   hostel_rooms hostel_rooms[]
 }
 
@@ -1064,7 +1030,7 @@ model schools {
   timezone         String             @default("UTC") @db.VarChar(50)
   isActive         Boolean            @default(true)
   createdAt        DateTime           @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime           @updatedAt
   banners          banners[]
   books            books[]
   classes          classes[]
@@ -1102,6 +1068,27 @@ model schools {
   users            users[]
   vehicles         vehicles[]
   visitors         visitors[]
+  certificates     certificates[]
+  id_card_templates id_card_templates[]
+  admit_card_templates admit_card_templates[]
+  marksheet_templates marksheet_templates[]
+  exam_groups      exam_groups[]
+  lesson_plans     lesson_plans[]
+  alumni           alumni[]
+  alumni_events    alumni_events[]
+  chat_rooms       chat_rooms[]
+  email_templates  email_templates[]
+  sms_templates    sms_templates[]
+  sms_config       sms_config?
+  email_config     email_config?
+  fee_discounts    fee_discounts[]
+  custom_fields    custom_fields[]
+  user_logs        user_logs[]
+  student_categories student_categories[]
+  student_houses   student_houses[]
+  student_references student_references[]
+  disable_reasons  disable_reasons[]
+  front_cms_settings front_cms_settings?
 }
 
 model sections {
@@ -1111,7 +1098,7 @@ model sections {
   sortOrder      Int              @default(0)
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   class_sections class_sections[]
   schools        schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -1119,18 +1106,19 @@ model sections {
 }
 
 model sessions {
-  id               Int                @id @default(autoincrement())
-  schoolId         Int
-  session          String             @db.VarChar(50)
-  isActive         Boolean            @default(false)
-  startDate        DateTime?
-  endDate          DateTime?
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime
-  exam_schedules   exam_schedules[]
-  fees_masters     fees_masters[]
-  schools          schools            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  student_sessions student_sessions[]
+  id                    Int                     @id @default(autoincrement())
+  schoolId              Int
+  session               String                  @db.VarChar(50)
+  isActive              Boolean                 @default(false)
+  startDate             DateTime?
+  endDate               DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  exam_schedules        exam_schedules[]
+  fees_masters          fees_masters[]
+  schools               schools                 @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  student_sessions      student_sessions[]
+  student_fee_discounts student_fee_discounts[]
 
   @@unique([schoolId, session])
 }
@@ -1140,7 +1128,7 @@ model settings {
   key       String   @unique @db.VarChar(100)
   value     String?  @db.Text
   createdAt DateTime @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
 }
 
 model staff {
@@ -1181,7 +1169,7 @@ model staff {
   note              String?             @db.Text
   isActive          Boolean             @default(true)
   createdAt         DateTime            @default(now())
-  updatedAt         DateTime
+  updatedAt DateTime @updatedAt
   class_teachers    class_teachers[]
   homeworks         homeworks[]
   leave_requests    leave_requests[]
@@ -1211,7 +1199,7 @@ model staff_attendances {
   checkOut  DateTime?
   remark    String?   @db.Text
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   staff     staff     @relation(fields: [staffId], references: [id], onDelete: Cascade)
 
   @@unique([staffId, date])
@@ -1225,7 +1213,7 @@ model student_attendances {
   status           String           @db.VarChar(20)
   remark           String?          @db.Text
   createdAt        DateTime         @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime           @updatedAt
   students         students         @relation(fields: [studentId], references: [id], onDelete: Cascade)
   student_sessions student_sessions @relation(fields: [studentSessionId], references: [id], onDelete: Cascade)
 
@@ -1250,7 +1238,7 @@ model student_fees_masters {
   feesMasterId     Int
   isActive         Boolean          @default(true)
   createdAt        DateTime         @default(now())
-  updatedAt        DateTime
+  updatedAt        DateTime           @updatedAt
   fee_payments     fee_payments[]
   fees_masters     fees_masters     @relation(fields: [feesMasterId], references: [id], onDelete: Cascade)
   student_sessions student_sessions @relation(fields: [studentSessionId], references: [id], onDelete: Cascade)
@@ -1267,7 +1255,7 @@ model student_sessions {
   rollNo                 String?                  @db.VarChar(50)
   isPromoted             Boolean                  @default(false)
   createdAt              DateTime                 @default(now())
-  updatedAt              DateTime
+  updatedAt DateTime @updatedAt
   exam_results           exam_results[]
   student_attendances    student_attendances[]
   student_fees_masters   student_fees_masters[]
@@ -1356,22 +1344,24 @@ model students {
   isActive             Boolean                @default(true)
   disableReason        String?                @db.Text
   createdAt            DateTime               @default(now())
-  updatedAt            DateTime
-  book_issues          book_issues[]
-  exam_results         exam_results[]
-  fee_payments         fee_payments[]
-  homework_submissions homework_submissions[]
-  library_members      library_members?
-  online_exam_results  online_exam_results[]
-  student_attendances  student_attendances[]
-  student_documents    student_documents[]
-  student_sessions     student_sessions[]
-  student_timeline     student_timeline[]
-  hostel_rooms         hostel_rooms?          @relation(fields: [hostelRoomId], references: [id])
-  parents              parents?               @relation(fields: [parentId], references: [id])
-  route_pickup_points  route_pickup_points?   @relation(fields: [routePickupPointId], references: [id])
-  schools              schools                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
-  users                users?
+  updatedAt DateTime @updatedAt
+  alumni                 alumni[]
+  book_issues            book_issues[]
+  exam_results           exam_results[]
+  fee_payments           fee_payments[]
+  homework_submissions   homework_submissions[]
+  library_members        library_members?
+  online_exam_results    online_exam_results[]
+  student_attendances    student_attendances[]
+  student_documents      student_documents[]
+  student_sessions       student_sessions[]
+  student_timeline       student_timeline[]
+  student_fee_discounts  student_fee_discounts[]
+  hostel_rooms           hostel_rooms?          @relation(fields: [hostelRoomId], references: [id])
+  parents                parents?               @relation(fields: [parentId], references: [id])
+  route_pickup_points    route_pickup_points?   @relation(fields: [routePickupPointId], references: [id])
+  schools                schools                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  users                  users?
 
   @@unique([schoolId, admissionNo])
   @@index([hostelRoomId], map: "students_hostelRoomId_fkey")
@@ -1396,7 +1386,7 @@ model subject_groups {
   name                   String                   @db.VarChar(100)
   description            String?                  @db.Text
   createdAt              DateTime                 @default(now())
-  updatedAt              DateTime
+  updatedAt DateTime @updatedAt
   student_subject_groups student_subject_groups[]
   subject_group_subjects subject_group_subjects[]
   classes                classes                  @relation(fields: [classId], references: [id], onDelete: Cascade)
@@ -1412,7 +1402,7 @@ model subjects {
   type                   String                   @default("theory") @db.VarChar(20)
   isActive               Boolean                  @default(true)
   createdAt              DateTime                 @default(now())
-  updatedAt              DateTime
+  updatedAt DateTime @updatedAt
   exam_subjects          exam_subjects[]
   homeworks              homeworks[]
   lesson_plans           lesson_plans[]
@@ -1437,7 +1427,7 @@ model suppliers {
   description   String?       @db.Text
   isActive      Boolean       @default(true)
   createdAt     DateTime      @default(now())
-  updatedAt     DateTime
+  updatedAt DateTime @updatedAt
   item_stocks   item_stocks[]
   schools       schools       @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -1451,8 +1441,9 @@ model syllabi {
   description String?  @db.Text
   document    String?  @db.VarChar(255)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt   DateTime @updatedAt
   subjects    subjects @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  topics      topics[]
 
   @@index([subjectId], map: "syllabi_subjectId_fkey")
 }
@@ -1479,7 +1470,7 @@ model timetables {
   endTime        String         @db.VarChar(10)
   roomNo         String?        @db.VarChar(50)
   createdAt      DateTime       @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   classes        classes        @relation(fields: [classId], references: [id], onDelete: Cascade)
   class_sections class_sections @relation(fields: [classSectionId], references: [id], onDelete: Cascade)
   staff          staff          @relation(fields: [staffId], references: [id], onDelete: Cascade)
@@ -1498,7 +1489,7 @@ model transport_routes {
   fare                Decimal               @default(0.00) @db.Decimal(15, 2)
   isActive            Boolean               @default(true)
   createdAt           DateTime              @default(now())
-  updatedAt           DateTime
+  updatedAt DateTime @updatedAt
   route_pickup_points route_pickup_points[]
   schools             schools               @relation(fields: [schoolId], references: [id], onDelete: Cascade)
   vehicle_routes      vehicle_routes[]
@@ -1520,7 +1511,7 @@ model users {
   isActive  Boolean   @default(true)
   lastLogin DateTime?
   createdAt DateTime  @default(now())
-  updatedAt DateTime
+  updatedAt DateTime @updatedAt
   parents   parents?  @relation(fields: [parentId], references: [id])
   roles     roles?    @relation(fields: [roleId], references: [id])
   schools   schools   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
@@ -1555,7 +1546,7 @@ model vehicles {
   capacity       Int              @default(0)
   isActive       Boolean          @default(true)
   createdAt      DateTime         @default(now())
-  updatedAt      DateTime
+  updatedAt DateTime @updatedAt
   vehicle_routes vehicle_routes[]
   schools        schools          @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
@@ -1578,8 +1569,515 @@ model visitors {
   note        String?  @db.Text
   image       String?  @db.VarChar(255)
   createdAt   DateTime @default(now())
-  updatedAt   DateTime
+  updatedAt DateTime @updatedAt
   schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 
   @@index([schoolId], map: "visitors_schoolId_fkey")
+}
+
+// ============================================
+// NEW MODELS FOR MULTI-SCHOOL SYSTEM
+// ============================================
+
+// Certificates Management
+model certificates {
+  id              Int      @id @default(autoincrement())
+  schoolId        Int
+  name            String   @db.VarChar(100)
+  templateContent String   @db.LongText
+  headerLeft      String?  @db.VarChar(255)
+  headerCenter    String?  @db.VarChar(255)
+  headerRight     String?  @db.VarChar(255)
+  bodyContent     String?  @db.LongText
+  footerLeft      String?  @db.VarChar(255)
+  footerCenter    String?  @db.VarChar(255)
+  footerRight     String?  @db.VarChar(255)
+  backgroundImage String?  @db.VarChar(255)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  schools         schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// ID Card Templates
+model id_card_templates {
+  id              Int      @id @default(autoincrement())
+  schoolId        Int
+  name            String   @db.VarChar(100)
+  type            String   @db.VarChar(20) // student, staff
+  templateContent String   @db.LongText
+  backgroundImage String?  @db.VarChar(255)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  schools         schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name, type])
+}
+
+// Admit Card Templates
+model admit_card_templates {
+  id              Int      @id @default(autoincrement())
+  schoolId        Int
+  name            String   @db.VarChar(100)
+  templateContent String   @db.LongText
+  heading         String?  @db.VarChar(255)
+  title           String?  @db.VarChar(255)
+  examName        String?  @db.VarChar(255)
+  schoolName      String?  @db.VarChar(255)
+  examCenter      String?  @db.VarChar(255)
+  footerText      String?  @db.Text
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  schools         schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// Marksheet Templates
+model marksheet_templates {
+  id              Int      @id @default(autoincrement())
+  schoolId        Int
+  name            String   @db.VarChar(100)
+  templateContent String   @db.LongText
+  heading         String?  @db.VarChar(255)
+  title           String?  @db.VarChar(255)
+  examName        String?  @db.VarChar(255)
+  bodyContent     String?  @db.LongText
+  footerText      String?  @db.Text
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  schools         schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// Exam Groups (Term 1, Term 2, Final, etc.)
+model exam_groups {
+  id          Int                @id @default(autoincrement())
+  schoolId    Int
+  name        String             @db.VarChar(100)
+  description String?            @db.Text
+  examType    String             @default("term") @db.VarChar(50) // term, unit, final
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  schools     schools            @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  exam_group_exams exam_group_exams[]
+
+  @@unique([schoolId, name])
+}
+
+// Link exams to exam groups
+model exam_group_exams {
+  id          Int         @id @default(autoincrement())
+  examGroupId Int
+  examId      Int
+  weightage   Decimal     @default(100.00) @db.Decimal(5, 2)
+  exam_groups exam_groups @relation(fields: [examGroupId], references: [id], onDelete: Cascade)
+  exams       exams       @relation(fields: [examId], references: [id], onDelete: Cascade)
+
+  @@unique([examGroupId, examId])
+  @@index([examId], map: "exam_group_exams_examId_fkey")
+}
+
+// Topics for Syllabus
+model topics {
+  id          Int           @id @default(autoincrement())
+  syllabusId  Int
+  name        String        @db.VarChar(255)
+  description String?       @db.Text
+  sortOrder   Int           @default(0)
+  status      String        @default("incomplete") @db.VarChar(20) // incomplete, complete
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  syllabi     syllabi       @relation(fields: [syllabusId], references: [id], onDelete: Cascade)
+  lesson_plans lesson_plans[]
+
+  @@index([syllabusId], map: "topics_syllabusId_fkey")
+}
+
+// Enhanced Lesson Plans
+model lesson_plans {
+  id                Int             @id @default(autoincrement())
+  schoolId          Int
+  classSectionId    Int?
+  subjectId         Int
+  staffId           Int?
+  topicId           Int?
+  lessonName        String          @db.VarChar(255)
+  lessonDate        DateTime
+  subTopic          String?         @db.VarChar(255)
+  generalObjectives String?         @db.Text
+  teachingMethod    String?         @db.Text
+  previousKnowledge String?         @db.Text
+  comprehensiveQues String?         @db.Text
+  presentation      String?         @db.LongText
+  note              String?         @db.Text
+  youtubeUrl        String?         @db.VarChar(255)
+  document          String?         @db.VarChar(255)
+  status            String          @default("pending") @db.VarChar(20) // pending, completed
+  createdBy         Int?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  schools           schools         @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  class_sections    class_sections? @relation(fields: [classSectionId], references: [id])
+  subjects          subjects        @relation(fields: [subjectId], references: [id], onDelete: Cascade)
+  staff             staff?          @relation(fields: [staffId], references: [id])
+  topics            topics?         @relation(fields: [topicId], references: [id])
+
+  @@index([schoolId], map: "lesson_plans_schoolId_fkey")
+  @@index([classSectionId], map: "lesson_plans_classSectionId_fkey")
+  @@index([subjectId], map: "lesson_plans_subjectId_fkey")
+  @@index([staffId], map: "lesson_plans_staffId_fkey")
+  @@index([topicId], map: "lesson_plans_topicId_fkey")
+}
+
+// Homework Submissions
+model homework_submissions {
+  id          Int       @id @default(autoincrement())
+  homeworkId  Int
+  studentId   Int
+  document    String?   @db.VarChar(255)
+  message     String?   @db.Text
+  status      String    @default("pending") @db.VarChar(20) // pending, accepted, rejected
+  marks       Decimal?  @db.Decimal(5, 2)
+  feedback    String?   @db.Text
+  submittedAt DateTime  @default(now())
+  evaluatedAt DateTime?
+  evaluatedBy Int?
+  homeworks   homeworks @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  students    students  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([homeworkId, studentId])
+  @@index([studentId], map: "homework_submissions_studentId_fkey")
+}
+
+// Alumni Management
+model alumni {
+  id              Int       @id @default(autoincrement())
+  schoolId        Int
+  studentId       Int?
+  firstName       String    @db.VarChar(100)
+  lastName        String?   @db.VarChar(100)
+  email           String?   @db.VarChar(255)
+  phone           String?   @db.VarChar(20)
+  gender          String?   @db.VarChar(10)
+  dateOfBirth     DateTime?
+  passingYear     String?   @db.VarChar(10)
+  currentJob      String?   @db.VarChar(255)
+  currentCompany  String?   @db.VarChar(255)
+  currentCity     String?   @db.VarChar(100)
+  currentCountry  String?   @db.VarChar(100)
+  linkedinUrl     String?   @db.VarChar(255)
+  photo           String?   @db.VarChar(255)
+  isActive        Boolean   @default(true)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  schools         schools   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  students        students? @relation(fields: [studentId], references: [id])
+  alumni_events_attendees alumni_events_attendees[]
+
+  @@index([schoolId], map: "alumni_schoolId_fkey")
+  @@index([studentId], map: "alumni_studentId_fkey")
+}
+
+// Alumni Events
+model alumni_events {
+  id          Int       @id @default(autoincrement())
+  schoolId    Int
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  eventDate   DateTime
+  venue       String?   @db.VarChar(255)
+  image       String?   @db.VarChar(255)
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  schools     schools   @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  alumni_events_attendees alumni_events_attendees[]
+
+  @@index([schoolId], map: "alumni_events_schoolId_fkey")
+}
+
+// Alumni Event Attendees
+model alumni_events_attendees {
+  id           Int           @id @default(autoincrement())
+  eventId      Int
+  alumniId     Int
+  status       String        @default("registered") @db.VarChar(20) // registered, attended, cancelled
+  createdAt    DateTime      @default(now())
+  alumni_events alumni_events @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  alumni       alumni        @relation(fields: [alumniId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, alumniId])
+  @@index([alumniId], map: "alumni_events_attendees_alumniId_fkey")
+}
+
+// Chat System
+model chat_rooms {
+  id          Int            @id @default(autoincrement())
+  schoolId    Int
+  name        String?        @db.VarChar(100)
+  type        String         @default("private") @db.VarChar(20) // private, group
+  createdBy   Int
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  schools     schools        @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  chat_messages chat_messages[]
+  chat_room_members chat_room_members[]
+
+  @@index([schoolId], map: "chat_rooms_schoolId_fkey")
+}
+
+model chat_room_members {
+  id         Int        @id @default(autoincrement())
+  roomId     Int
+  userId     Int
+  lastReadAt DateTime?
+  isAdmin    Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  chat_rooms chat_rooms @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@unique([roomId, userId])
+}
+
+model chat_messages {
+  id         Int        @id @default(autoincrement())
+  roomId     Int
+  senderId   Int
+  message    String     @db.Text
+  attachment String?    @db.VarChar(255)
+  isRead     Boolean    @default(false)
+  createdAt  DateTime   @default(now())
+  chat_rooms chat_rooms @relation(fields: [roomId], references: [id], onDelete: Cascade)
+
+  @@index([roomId], map: "chat_messages_roomId_fkey")
+}
+
+// Email Templates
+model email_templates {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int
+  name        String   @db.VarChar(100)
+  subject     String   @db.VarChar(255)
+  body        String   @db.LongText
+  type        String   @db.VarChar(50) // fee_reminder, attendance, result, etc.
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// SMS Templates
+model sms_templates {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int
+  name        String   @db.VarChar(100)
+  message     String   @db.Text
+  type        String   @db.VarChar(50) // fee_reminder, attendance, result, etc.
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// SMS Configuration
+model sms_config {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int      @unique
+  provider    String   @db.VarChar(50) // twilio, msg91, textlocal, etc.
+  apiKey      String?  @db.VarChar(255)
+  apiSecret   String?  @db.VarChar(255)
+  senderId    String?  @db.VarChar(50)
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+// Email Configuration
+model email_config {
+  id            Int      @id @default(autoincrement())
+  schoolId      Int      @unique
+  smtpHost      String?  @db.VarChar(255)
+  smtpPort      Int?
+  smtpUsername  String?  @db.VarChar(255)
+  smtpPassword  String?  @db.VarChar(255)
+  smtpEncryption String? @db.VarChar(10) // tls, ssl
+  fromEmail     String?  @db.VarChar(255)
+  fromName      String?  @db.VarChar(100)
+  isActive      Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  schools       schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+// Fee Discounts
+model fee_discounts {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int
+  name        String   @db.VarChar(100)
+  code        String   @db.VarChar(50)
+  type        String   @db.VarChar(20) // percentage, fixed
+  value       Decimal  @db.Decimal(15, 2)
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  student_fee_discounts student_fee_discounts[]
+
+  @@unique([schoolId, code])
+}
+
+// Student Fee Discounts
+model student_fee_discounts {
+  id            Int           @id @default(autoincrement())
+  studentId     Int
+  feeDiscountId Int
+  sessionId     Int
+  amount        Decimal       @db.Decimal(15, 2)
+  note          String?       @db.Text
+  createdAt     DateTime      @default(now())
+  students      students      @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  fee_discounts fee_discounts @relation(fields: [feeDiscountId], references: [id], onDelete: Cascade)
+  sessions      sessions      @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([studentId], map: "student_fee_discounts_studentId_fkey")
+  @@index([feeDiscountId], map: "student_fee_discounts_feeDiscountId_fkey")
+  @@index([sessionId], map: "student_fee_discounts_sessionId_fkey")
+}
+
+// Custom Fields
+model custom_fields {
+  id            Int                    @id @default(autoincrement())
+  schoolId      Int
+  belongsTo     String                 @db.VarChar(50) // student, staff, parent
+  fieldName     String                 @db.VarChar(100)
+  fieldType     String                 @db.VarChar(50) // text, number, date, select, checkbox, textarea
+  fieldOptions  String?                @db.Text // JSON for select options
+  isRequired    Boolean                @default(false)
+  sortOrder     Int                    @default(0)
+  isActive      Boolean                @default(true)
+  createdAt     DateTime               @default(now())
+  updatedAt     DateTime               @updatedAt
+  schools       schools                @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+  custom_field_values custom_field_values[]
+
+  @@unique([schoolId, belongsTo, fieldName])
+}
+
+// Custom Field Values
+model custom_field_values {
+  id            Int           @id @default(autoincrement())
+  customFieldId Int
+  recordId      Int           // student_id, staff_id, or parent_id
+  value         String?       @db.Text
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  custom_fields custom_fields @relation(fields: [customFieldId], references: [id], onDelete: Cascade)
+
+  @@unique([customFieldId, recordId])
+}
+
+// User Activity Log
+model user_logs {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int
+  userId      Int
+  action      String   @db.VarChar(100)
+  module      String   @db.VarChar(100)
+  recordId    Int?
+  ipAddress   String?  @db.VarChar(50)
+  userAgent   String?  @db.Text
+  oldValues   String?  @db.LongText // JSON
+  newValues   String?  @db.LongText // JSON
+  createdAt   DateTime @default(now())
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+}
+
+// Student Categories (for fee structure)
+model student_categories {
+  id          Int        @id @default(autoincrement())
+  schoolId    Int
+  name        String     @db.VarChar(100)
+  description String?    @db.Text
+  isActive    Boolean    @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  schools     schools    @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// Student Houses (for competitions)
+model student_houses {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// Student References (who referred the student)
+model student_references {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// Disable Reasons (for student disable)
+model disable_reasons {
+  id          Int      @id @default(autoincrement())
+  schoolId    Int
+  name        String   @db.VarChar(100)
+  description String?  @db.Text
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  schools     schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
+
+  @@unique([schoolId, name])
+}
+
+// Front CMS Settings
+model front_cms_settings {
+  id              Int      @id @default(autoincrement())
+  schoolId        Int      @unique
+  isEnabled       Boolean  @default(true)
+  theme           String   @default("default") @db.VarChar(50)
+  primaryColor    String?  @db.VarChar(20)
+  secondaryColor  String?  @db.VarChar(20)
+  footerText      String?  @db.Text
+  googleAnalytics String?  @db.VarChar(50)
+  facebookUrl     String?  @db.VarChar(255)
+  twitterUrl      String?  @db.VarChar(255)
+  linkedinUrl     String?  @db.VarChar(255)
+  instagramUrl    String?  @db.VarChar(255)
+  youtubeUrl      String?  @db.VarChar(255)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  schools         schools  @relation(fields: [schoolId], references: [id], onDelete: Cascade)
 }

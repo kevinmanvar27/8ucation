@@ -34,7 +34,7 @@ export async function POST(
     }
 
     // Verify user belongs to the same school
-    const user = await prisma.user.findFirst({
+    const user = await prisma.users.findFirst({
       where: {
         id: parseInt(params.id),
         schoolId,
@@ -48,7 +48,7 @@ export async function POST(
     // Hash new password
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
-    await prisma.user.update({
+    await prisma.users.update({
       where: { id: parseInt(params.id) },
       data: { password: hashedPassword },
     });
